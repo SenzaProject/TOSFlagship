@@ -1,0 +1,2882 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Nez Optimise</title>
+<style>
+:root{
+  --tx:#fff;--sub:rgba(255,255,255,.66);--edge:rgba(255,255,255,.2);
+  --base:#0a0d1a;--bo:.6;--c1:59 130 246;--c2:168 85 247;--c3:16 217 160;--dim:.35;--scrim:6 8 20;
+  --g1:rgba(40,46,84,.5);--g2:rgba(24,28,56,.4);
+  --l1:rgba(255,255,255,.14);--l2:rgba(255,255,255,.05);
+  --hl:rgba(255,255,255,.32);--gsh:rgba(90,100,220,.14);
+  --inp:rgba(0,0,0,.22);--track:rgba(0,0,0,.25);--tglow:rgba(140,170,255,.6);
+  --line:rgba(255,255,255,.08);--press:rgba(255,255,255,.08);
+  --logbg:rgba(0,0,0,.25);--logtx:rgba(255,255,255,.8);--toast:rgba(30,34,60,.9);
+  --navA:rgba(40,46,84,.6);--navB:rgba(30,34,66,.45);--navsh:rgba(0,0,0,.45);
+  --lens1:rgba(255,255,255,.52);--lens2:rgba(255,255,255,.18);--lens3:rgba(255,255,255,.1);
+  --lensbd:rgba(255,255,255,.42);--lenshl:rgba(255,255,255,.75);--lensglow:rgba(150,180,255,.5);
+  --swA:rgba(0,0,0,.32);--swB:rgba(255,255,255,.1);--swbd:rgba(255,255,255,.22);
+  --ckbd:rgba(255,255,255,.4);--ckbg:rgba(255,255,255,.06);
+  --ring:rgba(255,255,255,.95);--ringglow:rgba(255,255,255,.4);
+  --rctx:#8ff5d2;--rbring:#10142a;--warnc:#ffb35c;--redc:#ff7a7a;--orc:#ff9a6a;
+  --ac1:#34d6a0;--ac2:#16a97a;
+  --blur:blur(6px);
+  --spring:cubic-bezier(.34,1.45,.64,1);
+  --soft:cubic-bezier(.2,.9,.3,1);
+}
+html[data-theme="light"]{
+  --tx:#141a33;--sub:rgba(20,26,51,.62);--edge:rgba(255,255,255,.8);
+  --base:#e8edfb;--bo:.8;--scrim:245 247 255;
+  --g1:rgba(255,255,255,.74);--g2:rgba(255,255,255,.58);
+  --l1:rgba(255,255,255,.62);--l2:rgba(255,255,255,.3);
+  --hl:rgba(255,255,255,.95);--gsh:rgba(70,90,170,.2);
+  --inp:rgba(255,255,255,.65);--track:rgba(20,26,51,.1);--tglow:rgba(255,255,255,0);
+  --line:rgba(20,26,51,.09);--press:rgba(20,26,51,.06);
+  --logbg:rgba(255,255,255,.55);--logtx:rgba(20,26,51,.85);--toast:rgba(255,255,255,.94);
+  --navA:rgba(255,255,255,.78);--navB:rgba(255,255,255,.6);--navsh:rgba(40,60,130,.25);
+  --lens1:rgba(255,255,255,.98);--lens2:rgba(255,255,255,.7);--lens3:rgba(180,200,255,.35);
+  --lensbd:rgba(255,255,255,.95);--lenshl:#fff;--lensglow:rgba(90,120,255,.35);
+  --swA:rgba(20,26,51,.16);--swB:rgba(255,255,255,.45);--swbd:rgba(255,255,255,.85);
+  --ckbd:rgba(20,26,51,.35);--ckbg:rgba(255,255,255,.55);
+  --ring:rgba(20,26,51,.8);--ringglow:rgba(90,120,255,.45);
+  --rctx:#0c7a57;--rbring:#f1f4ff;--warnc:#b3640a;--redc:#c93030;--orc:#b8400f;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:var(--base);color:var(--tx);font-family:-apple-system,Roboto,sans-serif}
+body.tswap{animation:tswap .55s ease}
+@keyframes tswap{from{opacity:.35}}
+
+/* ===== Latar (statis: ringan) ===== */
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:var(--base)}
+.bg.img{background-size:cover;background-position:center}
+.bg::after{content:"";position:absolute;inset:0;background:rgb(var(--scrim) / var(--dim));opacity:0;transition:opacity .4s}
+.bg.img::after{opacity:1}
+.bg.img i{display:none}
+.bg i{position:absolute;border-radius:50%;width:90vmax;height:90vmax;opacity:var(--bo)}
+.b1{left:-45vmax;top:-45vmax;background:radial-gradient(circle,rgb(var(--c1) / .6),transparent 62%)}
+.b2{right:-55vmax;top:22%;background:radial-gradient(circle,rgb(var(--c2) / .5),transparent 62%)}
+.b3{left:-25vmax;bottom:-55vmax;background:radial-gradient(circle,rgb(var(--c3) / .45),transparent 62%)}
+
+/* ===== Kaca ===== */
+.glass{
+  background:linear-gradient(135deg,var(--g1),var(--g2));
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  border:1px solid var(--edge);
+  box-shadow:inset 0 1px 0 var(--hl),0 8px 24px var(--gsh);
+}
+.flat{-webkit-backdrop-filter:none;backdrop-filter:none}
+body.moving .page .glass{-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* ===== Cahaya mengikuti sentuhan ===== */
+.tg{position:relative;overflow:hidden}
+.tg::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(170px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.28),transparent 70%);
+  opacity:0;transition:opacity .55s;
+}
+.tg.lit::after{opacity:1;transition:opacity .12s}
+
+/* ===== Animasi masuk (hanya saat pertama dibuka) ===== */
+.rise{animation:rise .8s var(--soft) backwards}
+@keyframes rise{from{opacity:0;transform:translate3d(0,22px,0) scale(.97)}}
+.enter{animation:enter .6s var(--soft) backwards}
+@keyframes enter{from{opacity:0;transform:translate3d(0,16px,0) scale(.975)}}
+
+/* ===== Halaman: scroll sendiri, satu lapisan GPU saat bergerak ===== */
+.page{
+  position:fixed;inset:0;z-index:1;overflow-x:hidden;overflow-y:auto;
+  padding-top:env(safe-area-inset-top);overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;transform-origin:50% 30%;
+}
+body.moving .page{will-change:transform,opacity}
+.pad{height:170px}
+
+/* Sub-halaman (geser dari kanan) */
+.page.subpg{
+  z-index:3;transform:translate3d(100%,0,0);
+  transition:transform .5s var(--soft);will-change:transform;
+}
+.page.subpg.open{transform:translate3d(0,0,0)}
+.page.pushed{opacity:0;transform:translate3d(-24px,0,0);pointer-events:none;transition:opacity .4s,transform .5s var(--soft)}
+.page.unpush{transition:opacity .4s,transform .5s var(--soft)}
+
+/* ===== Header (Beranda) ===== */
+header{
+  position:sticky;top:10px;z-index:5;margin:10px 14px 8px;padding:14px;border-radius:24px;
+  transition:box-shadow .5s;
+}
+header.tg{position:sticky}
+header.stuck{box-shadow:inset 0 1px 0 var(--hl),0 12px 34px rgba(90,120,255,.3)}
+h1{font-size:19px;font-weight:700;margin:0 0 12px;text-shadow:0 0 20px var(--tglow)}
+input[type=search],input[type=text]{
+  width:100%;padding:12px 16px;border:1px solid var(--edge);border-radius:999px;
+  background:var(--inp);color:var(--tx);font-size:15px;outline:none;
+  transition:box-shadow .4s,border-color .4s;
+}
+input[type=search]::placeholder,input[type=text]::placeholder{color:var(--sub)}
+input[type=search]:focus,input[type=text]:focus{
+  border-color:rgba(150,180,255,.55);
+  box-shadow:0 0 0 3px rgba(120,160,255,.22),0 0 22px rgba(120,160,255,.28);
+}
+
+/* ===== Tab & segmen: lensa kaca ===== */
+.tabs{
+  position:relative;display:flex;gap:6px;margin-top:12px;padding:4px;
+  border-radius:999px;background:var(--track);
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:pointer;
+}
+.lens{
+  position:absolute;top:4px;bottom:4px;left:4px;border-radius:999px;
+  background:radial-gradient(120% 160% at 25% 0%,var(--lens1),var(--lens2) 55%,var(--lens3));
+  border:1px solid var(--lensbd);
+  box-shadow:
+    inset 0 1px 0 var(--lenshl),
+    inset 0 -3px 6px rgba(130,170,255,.3),
+    0 0 16px var(--lensglow),
+    0 4px 10px rgba(0,0,0,.22);
+  transform:translate3d(0,0,0);will-change:transform;
+}
+.tabs .lens{width:calc((100% - 14px) / 2)}
+.tabs.n3 .lens{width:calc((100% - 20px) / 3)}
+.tabs.n4 .lens{width:calc((100% - 26px) / 4)}
+.tabs button{
+  position:relative;z-index:1;flex:1;padding:9px 2px;border:0;border-radius:999px;
+  background:transparent;color:var(--sub);font-size:13.5px;font-weight:600;
+  transition:color .3s;pointer-events:none;white-space:nowrap;
+}
+.tabs button.on{color:var(--tx);text-shadow:0 0 12px var(--tglow)}
+
+/* ===== Kartu Always Dynamic Bar ===== */
+.card{display:flex;align-items:center;justify-content:space-between;margin:10px 14px;padding:16px 18px;border-radius:22px}
+.card .tt{font-size:16px;font-weight:600}
+.card small{display:block;color:var(--sub);font-size:12.5px;margin-top:3px;padding-right:10px}
+
+/* ===== Saklar liquid glass ===== */
+.sw{
+  --p:0;
+  position:relative;flex:none;width:72px;height:38px;border-radius:999px;z-index:1;
+  border:1px solid var(--swbd);
+  background:linear-gradient(180deg,var(--swA),var(--swB));
+  box-shadow:inset 0 2px 7px rgba(0,0,0,.35),inset 0 -1px 0 rgba(255,255,255,.18);
+  touch-action:none;cursor:pointer;user-select:none;-webkit-user-select:none;
+}
+.sw::before{
+  content:"";position:absolute;inset:-1px;border-radius:inherit;
+  background:linear-gradient(135deg,rgba(52,214,160,.95),rgba(22,169,122,.8));
+  box-shadow:inset 0 -1px 0 rgba(255,255,255,.3);
+  opacity:var(--p);
+}
+.sw::after{
+  content:"";position:absolute;inset:-12px;border-radius:999px;pointer-events:none;z-index:-1;
+  background:radial-gradient(closest-side,rgba(52,214,160,.6),transparent);
+  opacity:calc(var(--p) * .95);
+}
+.knob{
+  position:absolute;top:3px;left:3px;width:42px;height:30px;border-radius:999px;
+  background:radial-gradient(120% 150% at 28% 12%,rgba(255,255,255,.95),rgba(255,255,255,.55) 42%,rgba(255,255,255,.22) 100%);
+  border:1px solid rgba(255,255,255,.75);
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,.95),
+    inset 0 -4px 8px rgba(130,170,255,.4),
+    0 0 12px rgba(255,255,255,.3),
+    0 4px 10px rgba(0,0,0,.3);
+  transform:translate3d(0,0,0);will-change:transform;
+}
+
+/* ===== Bar jumlah + Pilih Semua ===== */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 14px 4px 24px}
+.info{color:var(--sub);font-size:13px;transform-origin:left center}
+.info.bump{animation:bump .45s var(--spring)}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.14);color:var(--tx);text-shadow:0 0 14px var(--tglow)}100%{transform:scale(1)}}
+.chip{
+  flex:none;padding:8px 16px;border-radius:999px;border:1px solid var(--edge);color:var(--tx);
+  font-size:13px;font-weight:700;
+  background:linear-gradient(135deg,rgba(52,214,160,.3),rgba(52,214,160,.1));
+  box-shadow:inset 0 1px 0 var(--hl),0 0 14px rgba(52,214,160,.25);
+  transition:transform .45s var(--spring);
+}
+.chip:active{transform:scale(.9)}
+.rhint{display:flex;gap:8px;align-items:flex-start;padding:2px 24px 6px;color:var(--sub);font-size:11.5px;line-height:1.4}
+.rhint .rb{position:static;flex:none;width:16px;height:16px;margin-top:1px;box-shadow:0 0 8px rgba(52,214,160,.6)}
+.rhint .rb svg{width:10px;height:10px}
+
+/* ===== Daftar aplikasi ===== */
+.group{margin:12px 14px;border-radius:22px;overflow:hidden}
+#list,#dbList{margin:8px 14px;transition:opacity .2s,translate .25s var(--soft)}
+#list.out{opacity:0;translate:0 10px}
+.empty{padding:16px 18px;color:var(--sub);font-size:13px}
+
+.item{
+  display:flex;align-items:center;gap:12px;padding:11px 16px;border-top:1px solid var(--line);
+  content-visibility:auto;contain-intrinsic-size:auto 67px;
+  transition:background .3s;
+}
+.item:first-child{border-top:0}
+.item:active{background:var(--press)}
+.item.prot{opacity:.6}
+
+.ico{
+  position:relative;z-index:1;flex:none;width:44px;height:44px;border-radius:13px;
+  background:var(--l1);box-shadow:inset 0 0 0 1px var(--line);
+}
+.ico img,.ico .av{display:block;width:100%;height:100%;border-radius:13px;object-fit:cover}
+.av{display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.rb{
+  position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:50%;
+  display:grid;place-items:center;color:#fff;
+  background:linear-gradient(135deg,var(--ac1),var(--ac2));
+  box-shadow:0 0 10px rgba(52,214,160,.7),0 0 0 2px var(--rbring);
+}
+.rb svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+
+.meta{position:relative;z-index:1;flex:1;min-width:0}
+.nm{display:flex;align-items:center;gap:7px;min-width:0}
+.nm b{font-size:14.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.rc{
+  flex:none;display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 6px;border-radius:999px;
+  font-size:10.5px;font-style:normal;font-weight:700;color:var(--rctx);
+  background:rgba(52,214,160,.18);border:1px solid rgba(52,214,160,.45);
+}
+.rc svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pk{font-size:11.5px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ds{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.35}
+.lk{position:relative;z-index:1;flex:none;width:22px;height:22px;opacity:.7;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+input.ck{
+  -webkit-appearance:none;appearance:none;flex:none;position:relative;z-index:1;
+  width:26px;height:26px;border-radius:50%;border:1.5px solid var(--ckbd);
+  background:var(--ckbg);outline:none;transition:border-color .3s,box-shadow .4s;
+}
+input.ck::before{
+  content:"";position:absolute;inset:-1.5px;border-radius:50%;
+  background:radial-gradient(120% 130% at 30% 15%,#7ff0cb,var(--ac1) 45%,var(--ac2));
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.6);
+  transform:scale(0);transition:transform .5s var(--spring);
+}
+input.ck::after{
+  content:"";position:absolute;left:8px;top:4px;width:6px;height:11px;
+  border:solid #fff;border-width:0 2.5px 2.5px 0;
+  transform:rotate(45deg) scale(0);transition:transform .45s .08s var(--spring);
+}
+input.ck:checked{border-color:transparent;box-shadow:0 0 12px rgba(52,214,160,.6)}
+input.ck:checked::before{transform:scale(1)}
+input.ck:checked::after{transform:rotate(45deg) scale(1)}
+input.ck.pop{animation:pop .5s var(--spring),ring .65s ease-out}
+@keyframes pop{0%{scale:1}30%{scale:.78}65%{scale:1.2}100%{scale:1}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(52,214,160,.7)}100%{box-shadow:0 0 0 16px rgba(52,214,160,0)}}
+
+/* ===== Setelan & Tweaks ===== */
+.top{margin:10px 14px 8px;padding:16px 18px;border-radius:24px}
+.top h1{margin:0}
+.top .sub{color:var(--sub);font-size:13px;margin-top:4px}
+.glabel{padding:6px 24px 0;color:var(--sub);font-size:12.5px;letter-spacing:.4px;text-transform:uppercase}
+.row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-top:1px solid var(--line);
+  cursor:pointer;transition:background .3s,opacity .3s;
+  user-select:none;-webkit-user-select:none;
+}
+.row:first-child{border-top:0}
+.row:active{background:var(--press)}
+.row .rt{position:relative;z-index:1;transition:transform .45s var(--spring);padding-right:10px}
+.row:active .rt{transform:scale(.97)}
+.row .rn{font-size:15.5px;font-weight:600}
+.row .rs{display:block;color:var(--sub);font-size:12.5px;margin-top:3px;transition:color .3s}
+.row>svg{position:relative;z-index:1;flex:none;width:18px;height:18px;opacity:.5;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s var(--spring)}
+.row.busy{opacity:.55}
+.row.armed .rs{color:var(--redc)}
+.row.armed{background:rgba(255,90,90,.12)}
+.logbox{max-height:0;overflow:hidden;transition:max-height .55s var(--soft)}
+.logbox.open{max-height:320px}
+.logbox pre{
+  margin:0;padding:14px 18px;max-height:320px;overflow:auto;
+  border-top:1px solid var(--line);background:var(--logbg);
+  color:var(--logtx);font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;
+}
+.row.open>svg{transform:rotate(90deg)}
+.about{padding:6px 18px}
+.about div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+.about div:first-child{border-top:0}
+.about span{color:var(--sub);flex:none}
+.about b{font-weight:600;text-align:right;word-break:break-word}
+.okb{color:var(--rctx)}
+.warn{color:var(--warnc)}
+
+.prow{padding:14px 18px;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
+.prow.flex{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.prow.flex>div:first-child{flex:1;min-width:0}
+.plabel{font-size:15.5px;font-weight:600}
+.prow .tabs{margin-top:0;width:190px;flex:none}
+.prow .tabs.full{width:100%;margin-top:0}
+.swatches{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.sq{
+  position:relative;flex:none;width:40px;height:40px;border-radius:50%;padding:0;border:0;outline:none;
+  transition:transform .45s var(--spring),box-shadow .4s;
+}
+.sq:active{transform:scale(.86)}
+.sq.sel{transform:scale(1.1);box-shadow:0 0 0 2.5px var(--ring),0 0 16px var(--ringglow)}
+.sq.pop2{animation:pop2 .5s var(--spring)}
+@keyframes pop2{0%{scale:1}35%{scale:.82}70%{scale:1.14}100%{scale:1}}
+.sq.img{display:grid;place-items:center;background:var(--l1);border:1.5px dashed var(--ckbd);color:var(--tx)}
+.sq.img svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sq.img.has{background-size:cover;background-position:center;border:0}
+.sq.img.has svg{opacity:0}
+.fold{max-height:0;overflow:hidden;opacity:0;transition:max-height .5s var(--soft),opacity .4s}
+.fold.open{max-height:140px;opacity:1}
+.pathrow{display:flex;gap:10px;margin-top:10px}
+.pbtn{
+  flex:none;padding:0 18px;border-radius:999px;border:1px solid var(--edge);color:var(--tx);
+  font-size:14px;font-weight:700;background:linear-gradient(135deg,var(--g1),var(--g2));
+  box-shadow:inset 0 1px 0 var(--hl);transition:transform .45s var(--spring);
+}
+.pbtn:active{transform:scale(.92)}
+.hint{color:var(--sub);font-size:12px;margin-top:8px;line-height:1.45;transition:color .3s}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:30px;margin:6px 0 0;
+  background:transparent;outline:none;
+}
+input[type=range]::-webkit-slider-runnable-track{
+  height:8px;border-radius:999px;
+  background:linear-gradient(90deg,var(--ac1) var(--v,40%),var(--track) var(--v,40%));
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:30px;height:20px;margin-top:-6px;border-radius:999px;
+  background:radial-gradient(120% 150% at 28% 12%,#fff,rgba(255,255,255,.7) 50%,rgba(220,230,255,.8));
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:inset 0 -3px 6px rgba(130,170,255,.4),0 0 10px rgba(52,214,160,.5),0 3px 8px rgba(0,0,0,.3);
+}
+
+/* ===== Kotak peringatan ===== */
+.warnbox{
+  display:flex;gap:12px;align-items:flex-start;margin:12px 14px;padding:14px 16px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(255,179,92,.22),rgba(255,179,92,.07));
+  border:1px solid rgba(255,179,92,.5);
+}
+.warnbox>svg{flex:none;width:24px;height:24px;margin-top:1px;fill:none;stroke:var(--warnc);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.warnbox b{display:block;color:var(--warnc);font-size:14px;margin-bottom:4px}
+.warnbox p{margin:0;color:var(--sub);font-size:12.5px;line-height:1.5}
+.warnbox ul{margin:0;padding-left:16px;color:var(--sub);font-size:12.5px;line-height:1.55}
+.warnbox li{margin-bottom:3px}
+
+/* ===== Monitor performa ===== */
+.mon{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 18px 6px}
+.tile .tl{font-size:12px;color:var(--sub)}
+.tile .tv{font-size:15px;font-weight:700;margin-top:2px;white-space:nowrap}
+.meter{height:6px;border-radius:999px;background:var(--track);overflow:hidden;margin-top:7px}
+.meter i{
+  display:block;height:100%;width:100%;border-radius:999px;
+  background:linear-gradient(90deg,var(--ac1),var(--ac2));
+  transform-origin:left;transform:scaleX(0);transition:transform .6s var(--soft);
+}
+.tile.h1 .meter i{background:linear-gradient(90deg,#ffcf7a,#ff9f1c)}
+.tile.h2 .meter i{background:linear-gradient(90deg,#ff9a9a,#ff4d4d)}
+.tile.h1 .tv{color:var(--warnc)}
+.tile.h2 .tv{color:var(--redc)}
+.fqs{padding:4px 18px 8px}
+.fq{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:7px 0;font-size:13px}
+.fq span{color:var(--sub)}
+.fq b{font-weight:600}
+.fq .meter{grid-column:1/-1;margin-top:3px}
+.monw{padding:0 18px 14px;margin:0;color:var(--warnc)}
+
+/* ===== Sub-halaman ===== */
+.back{
+  display:inline-flex;align-items:center;gap:2px;padding:7px 14px 7px 8px;margin-bottom:12px;
+  border-radius:999px;border:1px solid var(--edge);color:var(--tx);
+  background:linear-gradient(135deg,var(--l1),var(--l2));
+  font-size:13.5px;font-weight:700;transition:transform .45s var(--spring);
+}
+.back svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.back:active{transform:scale(.92)}
+.chips{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.chips.auto{grid-template-columns:repeat(auto-fit,minmax(78px,1fr));margin-top:12px}
+.chip2{
+  position:relative;padding:13px 4px;border-radius:14px;border:1px solid var(--edge);color:var(--tx);
+  background:linear-gradient(135deg,var(--l1),var(--l2));
+  font-size:14px;font-weight:700;transition:transform .45s var(--spring),box-shadow .35s,background .35s,border-color .35s;
+}
+.chip2:active{transform:scale(.9)}
+.chip2.r1{border-color:rgba(255,179,92,.5)}
+.chip2.r2{border-color:rgba(255,106,106,.55)}
+.chip2.sel{
+  background:linear-gradient(135deg,rgba(52,214,160,.42),rgba(52,214,160,.18));
+  border-color:rgba(52,214,160,.75);box-shadow:0 0 14px rgba(52,214,160,.4);
+}
+.chip2.sel.r1{background:linear-gradient(135deg,rgba(255,179,92,.42),rgba(255,179,92,.16));border-color:rgba(255,179,92,.85);box-shadow:0 0 14px rgba(255,179,92,.4)}
+.chip2.sel.r2{background:linear-gradient(135deg,rgba(255,106,106,.42),rgba(255,106,106,.16));border-color:rgba(255,106,106,.9);box-shadow:0 0 14px rgba(255,106,106,.4)}
+.chip2.cur::after{content:"";position:absolute;top:6px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--ac1);box-shadow:0 0 6px var(--ac1)}
+.riskline{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12.5px;line-height:1.45;color:var(--sub)}
+.risk{
+  flex:none;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:800;
+  background:rgba(52,214,160,.2);color:var(--rctx);border:1px solid rgba(52,214,160,.5);
+}
+.risk.r1{background:rgba(255,179,92,.2);color:var(--warnc);border-color:rgba(255,179,92,.55)}
+.risk.r2{background:rgba(255,106,106,.2);color:var(--redc);border-color:rgba(255,106,106,.55)}
+.bigbtn{
+  display:block;width:100%;margin-top:14px;padding:15px;border-radius:999px;color:#fff;
+  font-size:15.5px;font-weight:700;border:1px solid rgba(255,255,255,.38);
+  background:linear-gradient(135deg,rgba(52,214,160,.92),rgba(22,169,122,.8));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 18px rgba(52,214,160,.3);
+  transition:transform .55s var(--spring),opacity .3s;
+}
+.bigbtn:active{transform:scale(1.02,.92);transition:transform .15s ease-out}
+.bigbtn.off{opacity:.45;pointer-events:none}
+
+/* ===== Debloat ===== */
+.dbhead{padding:4px 14px 0}
+.fchips{display:flex;gap:8px;overflow-x:auto;padding:10px 2px 4px;scrollbar-width:none}
+.fchips::-webkit-scrollbar{display:none}
+.fch{
+  flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--edge);color:var(--tx);
+  background:linear-gradient(135deg,var(--l1),var(--l2));
+  font-size:13px;font-weight:700;transition:transform .45s var(--spring),background .3s,border-color .3s,box-shadow .3s;
+}
+.fch:active{transform:scale(.92)}
+.fch.sel{background:linear-gradient(135deg,rgba(150,180,255,.4),rgba(150,180,255,.16));border-color:rgba(150,180,255,.8);box-shadow:0 0 14px rgba(150,180,255,.35)}
+.fch.f1.sel{background:linear-gradient(135deg,rgba(52,214,160,.42),rgba(52,214,160,.16));border-color:rgba(52,214,160,.8);box-shadow:0 0 14px rgba(52,214,160,.35)}
+.fch.f2.sel{background:linear-gradient(135deg,rgba(255,179,92,.42),rgba(255,179,92,.16));border-color:rgba(255,179,92,.85);box-shadow:0 0 14px rgba(255,179,92,.35)}
+.fch.f3.sel{background:linear-gradient(135deg,rgba(255,120,70,.42),rgba(255,120,70,.16));border-color:rgba(255,120,70,.85);box-shadow:0 0 14px rgba(255,120,70,.35)}
+.fch.f4.sel{background:linear-gradient(135deg,rgba(255,106,106,.42),rgba(255,106,106,.16));border-color:rgba(255,106,106,.9);box-shadow:0 0 14px rgba(255,106,106,.35)}
+.dbinfo{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 6px 0;font-size:12.5px;color:var(--sub);line-height:1.4}
+.lv{
+  flex:none;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:800;font-style:normal;border:1px solid;
+}
+.lv.l0{color:var(--rctx);background:rgba(52,214,160,.18);border-color:rgba(52,214,160,.45)}
+.lv.l1{color:var(--warnc);background:rgba(255,179,92,.18);border-color:rgba(255,179,92,.5)}
+.lv.l2{color:var(--orc);background:rgba(255,120,70,.18);border-color:rgba(255,120,70,.5)}
+.lv.l3{color:var(--redc);background:rgba(255,106,106,.18);border-color:rgba(255,106,106,.5)}
+.lgd{display:flex;gap:10px;align-items:flex-start;padding:11px 18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--sub);line-height:1.4}
+.lgd:first-child{border-top:0}
+.dbact{position:sticky;bottom:calc(96px + env(safe-area-inset-bottom));margin:14px 14px 0;z-index:4}
+.dbact .bigbtn{margin-top:0}
+
+/* ===== Dialog ===== */
+.modal{
+  position:fixed;inset:0;z-index:30;display:none;place-items:center;
+  background:rgba(0,0,0,.5);opacity:0;transition:opacity .25s;
+}
+#cmodal{z-index:31}
+.modal.show{display:grid}
+.modal.in{opacity:1}
+.mbox{
+  width:min(86vw,320px);padding:22px 20px 18px;border-radius:28px;text-align:center;
+  background:var(--toast);border:1px solid var(--edge);
+  box-shadow:inset 0 1px 0 var(--hl),0 20px 60px rgba(0,0,0,.5);
+  transform:scale(.92);transition:transform .45s var(--spring);
+}
+.modal.in .mbox{transform:scale(1)}
+.mic{
+  width:54px;height:54px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(255,179,92,.2);border:1px solid rgba(255,179,92,.5);
+}
+.mic svg{width:28px;height:28px;fill:none;stroke:var(--warnc);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ringw{position:relative;width:84px;height:84px;margin:0 auto 12px}
+.ringw svg{width:84px;height:84px;transform:rotate(-90deg)}
+.ringw circle{fill:none;stroke-width:6}
+.rbg{stroke:var(--track)}
+.rfg{stroke:var(--ac1);stroke-linecap:round;stroke-dasharray:226.2;stroke-dashoffset:0}
+@keyframes ringc{to{stroke-dashoffset:226.2}}
+.ringw b{position:absolute;inset:0;display:grid;place-items:center;font-size:24px;font-weight:800}
+.mbox h3{margin:0 0 6px;font-size:17px}
+.mbox p{margin:0 0 16px;color:var(--sub);font-size:13px;line-height:1.5}
+.mbtns{display:flex;gap:10px}
+.mbtn{
+  flex:1;padding:13px 0;border-radius:999px;border:1px solid var(--edge);color:var(--tx);
+  font-size:14.5px;font-weight:700;transition:transform .45s var(--spring);
+}
+.mbtn:active{transform:scale(.92)}
+.mbtn.undo{background:linear-gradient(135deg,var(--l1),var(--l2))}
+.mbtn.keep{color:#fff;border-color:rgba(255,255,255,.38);background:linear-gradient(135deg,rgba(52,214,160,.92),rgba(22,169,122,.8))}
+.mbtn.go{color:#fff;border-color:rgba(255,255,255,.38);background:linear-gradient(135deg,#ffb35c,#e0882b)}
+
+/* ===== Tombol simpan ===== */
+.savewrap{
+  position:fixed;left:18px;right:18px;bottom:calc(98px + env(safe-area-inset-bottom));z-index:6;
+  will-change:transform,opacity;
+}
+.sglow{
+  position:absolute;left:4%;right:4%;bottom:-14px;height:46px;border-radius:50%;
+  background:radial-gradient(ellipse at 50% 50%,rgba(52,214,160,.65),transparent 70%);
+  pointer-events:none;
+}
+#save{
+  position:relative;display:block;width:100%;
+  padding:16px;border-radius:999px;color:#fff;font-size:16px;font-weight:700;
+  border:1px solid rgba(255,255,255,.38);overflow:hidden;
+  background:linear-gradient(135deg,rgba(52,214,160,.92),rgba(22,169,122,.8));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
+  transition:transform .55s var(--spring);
+  user-select:none;-webkit-user-select:none;
+}
+#save:active{transform:scale(1.02,.9);transition:transform .15s ease-out}
+#save .lbl{position:relative;z-index:1;text-shadow:0 0 14px rgba(255,255,255,.5)}
+#save .rip{
+  position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle,rgba(255,255,255,.7),rgba(255,255,255,0) 70%);
+  transform:scale(0);animation:rip .75s ease-out forwards;
+}
+@keyframes rip{to{transform:scale(32);opacity:0}}
+#save.jelly{animation:jelly .75s}
+@keyframes jelly{
+  0%{transform:scale(1)}
+  22%{transform:scale(1.045,.88)}
+  48%{transform:scale(.97,1.09)}
+  74%{transform:scale(1.015,.98)}
+  100%{transform:scale(1)}
+}
+
+/* ===== Navigasi bawah (3 menu, posisi tetap) ===== */
+.navwrap{
+  position:fixed;left:0;right:0;bottom:calc(14px + env(safe-area-inset-bottom));z-index:8;
+  display:flex;justify-content:center;pointer-events:none;
+}
+.nav{
+  pointer-events:auto;position:relative;display:flex;width:min(94vw,400px);padding:4px;
+  border-radius:999px;touch-action:none;contain:layout style;
+  user-select:none;-webkit-user-select:none;cursor:pointer;
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  background:linear-gradient(135deg,var(--navA),var(--navB));
+  border:1px solid var(--edge);
+  box-shadow:inset 0 1px 0 var(--hl),0 10px 28px var(--navsh),0 0 26px rgba(120,150,255,.22);
+}
+.nav .lens{width:calc((100% - 8px) / 4)}
+.nav button{
+  position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:9px 0 8px;border:0;background:transparent;color:var(--tx);
+  font-size:11.5px;font-weight:700;pointer-events:none;
+}
+.nav svg{
+  width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round;will-change:transform;
+}
+
+/* ===== Toast ===== */
+#toast{
+  position:fixed;left:50%;bottom:calc(172px + env(safe-area-inset-bottom));z-index:40;max-width:90%;
+  padding:11px 20px;border-radius:999px;font-size:14px;text-align:center;color:var(--tx);
+  background:var(--toast);border:1px solid var(--edge);
+  -webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+  box-shadow:0 0 20px rgba(120,150,255,.28);
+  opacity:0;transform:translate3d(-50%,24px,0) scale(.94);
+  transition:opacity .3s,transform .55s var(--spring);pointer-events:none;
+}
+#toast.show{opacity:1;transform:translate3d(-50%,0,0) scale(1)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div class="bg" id="bg"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+
+<!-- ===== Beranda ===== -->
+<section class="page" id="pgHome">
+  <header class="glass tg rise" id="hdr">
+    <h1 id="title">Nez Optimise</h1>
+    <input type="search" id="q" placeholder="Cari aplikasi / package...">
+    <div class="tabs" id="tabs">
+      <div class="lens"></div>
+      <button id="tUser">Aplikasi User</button>
+      <button id="tAll">Semua</button>
+    </div>
+  </header>
+
+  <div class="card glass tg rise" style="animation-delay:.08s">
+    <div style="position:relative;z-index:1"><span class="tt" id="dynT">Always Dynamic Bar</span><small id="dynS">Matikan untuk menonaktifkan (perlu reboot)</small></div>
+    <div class="sw" id="dyn" role="switch" aria-checked="false"><div class="knob"></div></div>
+  </div>
+
+  <div class="bar rise" style="animation-delay:.16s">
+    <div class="info" id="info">Dipilih: 0</div>
+    <button class="chip" id="selAll">Pilih Semua</button>
+  </div>
+  <div class="rhint rise" style="animation-delay:.2s">
+    <i class="rb"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg></i>
+    <span id="rhintT"></span>
+  </div>
+
+  <div id="list" class="group glass flat"></div>
+  <div class="pad"></div>
+</section>
+
+<!-- ===== Tweaks ===== -->
+<section class="page" id="pgTw" style="display:none">
+  <div class="top glass tg">
+    <h1 id="twTitle">Tweaks</h1>
+    <div class="sub" id="twSub"></div>
+  </div>
+
+  <div class="warnbox">
+    <svg viewBox="0 0 24 24"><path d="M12 4 3 20h18z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg>
+    <div><b id="twWT"></b><p id="twWP"></p></div>
+  </div>
+
+  <div class="glabel" id="devT"></div>
+  <div class="group glass flat"><div class="about" id="devInfo"></div></div>
+
+  <div class="glabel" id="monT"></div>
+  <div class="group glass flat" id="monBox">
+    <div class="mon">
+      <div class="tile" id="mRamT"><div class="tl" id="mRamL"></div><div class="tv" id="mRamV">-</div><div class="meter"><i id="mRamB"></i></div></div>
+      <div class="tile" id="mSwapT"><div class="tl" id="mSwapL"></div><div class="tv" id="mSwapV">-</div><div class="meter"><i id="mSwapB"></i></div></div>
+      <div class="tile" id="mBatT"><div class="tl" id="mBatL"></div><div class="tv" id="mBatV">-</div><div class="meter"><i id="mBatB"></i></div></div>
+      <div class="tile" id="mCpuT"><div class="tl" id="mCpuL"></div><div class="tv" id="mCpuV">-</div><div class="meter"><i id="mCpuB"></i></div></div>
+      <div class="tile" id="mStoT"><div class="tl" id="mStoL"></div><div class="tv" id="mStoV">-</div><div class="meter"><i id="mStoB"></i></div></div>
+      <div class="tile" id="mLdT"><div class="tl" id="mLdL"></div><div class="tv" id="mLdV">-</div><div class="meter"><i id="mLdB"></i></div></div>
+    </div>
+    <div class="fqs" id="mFreq"></div>
+    <p class="hint monw" id="monW"></p>
+  </div>
+
+  <div class="glabel" id="rendT"></div>
+  <div class="group glass flat">
+    <div class="prow">
+      <div class="tabs full n3" id="rSeg">
+        <div class="lens"></div>
+        <button id="rd0"></button><button id="rd1"></button><button id="rd2"></button>
+      </div>
+      <div class="hint" id="rHint"></div>
+      <div class="hint" id="rNote" style="margin-top:4px"></div>
+    </div>
+  </div>
+
+  <div class="glabel" id="animT"></div>
+  <div class="group glass flat">
+    <div class="prow">
+      <div class="tabs full n4" id="aSeg">
+        <div class="lens"></div>
+        <button id="an0"></button><button id="an1"></button><button id="an2"></button><button id="an3"></button>
+      </div>
+      <div class="hint" id="aHint"></div>
+    </div>
+  </div>
+
+  <div class="glabel" id="hzT"></div>
+  <div class="group glass flat">
+    <div class="prow">
+      <div class="chips auto" id="hzChips" style="margin-top:0"></div>
+      <div class="hint" id="hzH"></div>
+    </div>
+  </div>
+
+  <div class="glabel" id="perfT"></div>
+  <div class="group glass flat">
+    <div class="prow">
+      <div class="tabs full n3" id="pSeg">
+        <div class="lens"></div>
+        <button id="pf0"></button><button id="pf1"></button><button id="pf2"></button>
+      </div>
+      <div class="hint" id="pHint"></div>
+    </div>
+  </div>
+
+  <div class="group glass flat">
+    <div class="prow flex">
+      <div><div class="plabel" id="blurT"></div><div class="hint" id="blurS" style="margin-top:3px"></div></div>
+      <div class="sw" id="blurSw" role="switch" aria-checked="false"><div class="knob"></div></div>
+    </div>
+    <div class="prow flex">
+      <div><div class="plabel" id="memT"></div><div class="hint" id="memS" style="margin-top:3px"></div></div>
+      <div class="sw" id="memSw" role="switch" aria-checked="false"><div class="knob"></div></div>
+    </div>
+    <div class="prow flex">
+      <div><div class="plabel" id="scanT"></div><div class="hint" id="scanS" style="margin-top:3px"></div></div>
+      <div class="sw" id="scanSw" role="switch" aria-checked="false"><div class="knob"></div></div>
+    </div>
+  </div>
+
+  <div class="glabel" id="mainT"></div>
+  <div class="group glass flat">
+    <div class="prow flex">
+      <div><div class="plabel" id="acT"></div><div class="hint" id="acS" style="margin-top:3px"></div></div>
+      <div class="sw" id="acSw" role="switch" aria-checked="false"><div class="knob"></div></div>
+    </div>
+    <div class="row tg" id="rKill"><div class="rt"><span class="rn" id="rKillN"></span><span class="rs" id="rKillS"></span></div></div>
+    <div class="row tg" id="rRam"><div class="rt"><span class="rn" id="rRamN"></span><span class="rs" id="rRamS"></span></div></div>
+    <div class="row tg" id="rTrimC"><div class="rt"><span class="rn" id="rTrimCN"></span><span class="rs" id="rTrimCS"></span></div></div>
+    <div class="row tg" id="rJunk"><div class="rt"><span class="rn" id="rJunkN"></span><span class="rs" id="rJunkS"></span></div></div>
+    <div class="row tg" id="rFstrim"><div class="rt"><span class="rn" id="rFstrimN"></span><span class="rs" id="rFstrimS"></span></div></div>
+    <div class="row tg" id="rDex"><div class="rt"><span class="rn" id="rDexN"></span><span class="rs" id="rDexS"></span></div></div>
+    <div class="row tg" id="rTwReset"><div class="rt"><span class="rn" id="rTwResetN"></span><span class="rs" id="rTwResetS"></span></div></div>
+  </div>
+
+  <div class="glabel" id="advT"></div>
+  <div class="group glass flat">
+    <div class="row tg" id="rResRow">
+      <div class="rt"><span class="rn" id="rResRowN"></span><span class="rs" id="rResRowS"></span></div>
+      <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+    </div>
+  </div>
+  <div class="pad" style="height:130px"></div>
+</section>
+
+<!-- ===== Setelan ===== -->
+<section class="page" id="pgSet" style="display:none">
+  <div class="top glass tg">
+    <h1 id="setTitle">Setelan</h1>
+    <div class="sub" id="setSub"></div>
+  </div>
+
+  <div class="group glass flat">
+    <div class="row tg" id="rCache"><div class="rt"><span class="rn" id="rCacheN"></span><span class="rs" id="rCacheS"></span></div></div>
+    <div class="row tg" id="rOvl"><div class="rt"><span class="rn" id="rOvlN"></span><span class="rs" id="rOvlS"></span></div></div>
+    <div class="row tg" id="rLog"><div class="rt"><span class="rn" id="rLogN"></span><span class="rs" id="rLogS"></span></div>
+      <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></div>
+    <div class="logbox" id="logbox"><pre id="logpre"></pre></div>
+    <div class="row tg" id="rBoot"><div class="rt"><span class="rn" id="rBootN"></span><span class="rs" id="rBootS"></span></div></div>
+  </div>
+
+  <div class="glabel" id="apT"></div>
+  <div class="group glass flat">
+    <div class="prow flex">
+      <div class="plabel" id="thT"></div>
+      <div class="tabs" id="themeSeg">
+        <div class="lens"></div>
+        <button id="thD"></button>
+        <button id="thL"></button>
+      </div>
+    </div>
+    <div class="prow">
+      <div class="plabel" id="bgT"></div>
+      <div class="swatches" id="swatches"></div>
+      <input type="file" id="file" accept="image/*" hidden>
+    </div>
+    <div class="fold" id="imgFold">
+      <div class="prow">
+        <div class="plabel" id="dimT"></div>
+        <input type="range" id="dim" min="0" max="80" value="35">
+      </div>
+    </div>
+    <div class="prow">
+      <div class="plabel" id="pathT"></div>
+      <div class="pathrow">
+        <input type="text" id="path" placeholder="/sdcard/Pictures/latar.jpg" autocapitalize="off" autocomplete="off" spellcheck="false">
+        <button class="pbtn" id="pathBtn"></button>
+      </div>
+      <div class="hint" id="pathH"></div>
+    </div>
+    <div class="row tg" id="rReset"><div class="rt"><span class="rn" id="rResetN"></span><span class="rs" id="rResetS"></span></div></div>
+  </div>
+
+  <div class="glabel" id="aboutT"></div>
+  <div class="group glass flat">
+    <div class="about" id="about"></div>
+  </div>
+  <div class="pad" style="height:130px"></div>
+</section>
+
+<!-- ===== Sub-halaman: Resolusi layar ===== -->
+<section class="page subpg" id="pgRes" style="display:none">
+  <div class="top glass tg">
+    <button class="back" id="resBack"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span id="resBackT"></span></button>
+    <h1 id="resTitle"></h1>
+    <div class="sub" id="resSub"></div>
+  </div>
+
+  <div class="warnbox">
+    <svg viewBox="0 0 24 24"><path d="M12 4 3 20h18z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg>
+    <div><b id="resWT"></b><ul id="resWL"></ul></div>
+  </div>
+
+  <div class="glabel" id="resCurT"></div>
+  <div class="group glass flat"><div class="about" id="resInfo"></div></div>
+
+  <div class="glabel" id="resPickT"></div>
+  <div class="group glass flat">
+    <div class="prow">
+      <div class="chips" id="resChips"></div>
+      <div class="hint" id="resPrev"></div>
+      <div class="riskline"><span class="risk" id="riskB"></span><span id="riskN"></span></div>
+      <button class="bigbtn off" id="resApply"></button>
+    </div>
+  </div>
+
+  <div class="group glass flat">
+    <div class="row tg" id="rResReset"><div class="rt"><span class="rn" id="rResResetN"></span><span class="rs" id="rResResetS"></span></div></div>
+  </div>
+  <div class="pad" style="height:130px"></div>
+</section>
+
+<!-- ===== Sub-halaman: Debloat ===== -->
+<section class="page" id="pgDeb" style="display:none">
+  <div class="top glass tg">
+    <button class="back" id="dbBack" style="display:none"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg><span id="dbBackT"></span></button>
+    <h1 id="dbTitle"></h1>
+    <div class="sub" id="dbSub"></div>
+  </div>
+
+  <div class="warnbox">
+    <svg viewBox="0 0 24 24"><path d="M12 4 3 20h18z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg>
+    <div><b id="dbWT"></b><ul id="dbWL"></ul></div>
+  </div>
+
+  <div class="glabel" id="dbLgT"></div>
+  <div class="group glass flat" id="dbLegend"></div>
+
+  <div class="dbhead">
+    <input type="search" id="dbQ">
+    <div class="fchips" id="dbF"></div>
+    <div class="dbinfo"><span id="dbCnt"></span><button class="chip" id="dbSelAll"></button></div>
+  </div>
+
+  <div id="dbList" class="group glass flat"></div>
+
+  <div class="dbact"><button class="bigbtn off" id="dbGo"></button></div>
+
+  <div class="group glass flat">
+    <div class="row tg" id="rDbBackup"><div class="rt"><span class="rn" id="rDbBackupN"></span><span class="rs" id="rDbBackupS"></span></div></div>
+  </div>
+  <div class="pad" style="height:130px"></div>
+</section>
+
+<div class="savewrap" id="savewrap">
+  <div class="sglow"></div>
+  <button id="save" class="rise" style="animation-delay:.24s"><span class="lbl" id="lbl">Simpan &amp; Terapkan</span></button>
+</div>
+
+<div class="navwrap">
+  <nav class="nav" id="nav">
+    <div class="lens"></div>
+    <button id="nHome">
+      <svg viewBox="0 0 24 24"><path d="M4 10.8 12 4l8 6.8V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>
+      <span id="nHomeT">Beranda</span>
+    </button>
+    <button id="nTw">
+      <svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>
+      <span id="nTwT">Tweaks</span>
+    </button>
+        <button id="nDb">
+      <svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+      <span id="nDbT">Debloat</span>
+    </button>
+    <button id="nSet">
+      <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span id="nSetT">Setelan</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Dialog: hitung mundur resolusi -->
+<div class="modal" id="modal">
+  <div class="mbox">
+    <div class="ringw">
+      <svg viewBox="0 0 84 84"><circle class="rbg" cx="42" cy="42" r="36"/><circle class="rfg" id="mRing" cx="42" cy="42" r="36"/></svg>
+      <b id="mNum">15</b>
+    </div>
+    <h3 id="mTitle"></h3>
+    <p id="mText"></p>
+    <div class="mbtns">
+      <button class="mbtn undo" id="mUndo"></button>
+      <button class="mbtn keep" id="mKeep"></button>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: peringatan sebelum menerapkan -->
+<div class="modal" id="cmodal">
+  <div class="mbox">
+    <div class="mic"><svg viewBox="0 0 24 24"><path d="M12 4 3 20h18z"/><path d="M12 10v4.5"/><path d="M12 17.5h.01"/></svg></div>
+    <h3 id="cTitle"></h3>
+    <p id="cText"></p>
+    <div class="mbtns">
+      <button class="mbtn undo" id="cNo"></button>
+      <button class="mbtn go" id="cOk"></button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let toastTimer = 0;
+function toast(t) {
+  const el = document.getElementById("toast");
+  el.textContent = t; el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+window.onerror = (m, s, l) => toast("JS error: " + m + " (baris " + l + ")");
+
+const MODID = "TOS_Flagship_Tweaks";
+const MODDIR = "/data/adb/modules/" + MODID;
+const DIR = "/data/adb/nez_noapps";
+const LIST = DIR + "/daftar.txt";
+const SCRIPT = MODDIR + "/NezScript/batasi.sh";
+const TWSCRIPT = MODDIR + "/NezScript/tweaks.sh";
+const RESSCRIPT = MODDIR + "/NezScript/resolusi.sh";
+const DEBSCRIPT = MODDIR + "/NezScript/debloat.sh";
+const TWCONF = DIR + "/tweaks.conf";
+const PROP = MODDIR + "/system.prop";
+const FLAG = DIR + "/dynbar_off";
+const KEY = "ro.os_dynamic_bar_resident_plane_support";
+
+const ID = (navigator.language || "en").toLowerCase().startsWith("id");
+const T = ID ? {
+  search: "Cari aplikasi / package...", user: "Aplikasi User", all: "Semua",
+  save: "Simpan & Terapkan", sel: "Dipilih", saved: "Tersimpan & diterapkan",
+  err: "Gagal, cek akses root / ID modul", empty: "Tidak ada aplikasi",
+  dynT: "Always Dynamic Bar", dynS: "Matikan untuk menonaktifkan (perlu reboot)",
+  dynOk: "Tersimpan, reboot untuk menerapkan",
+  selAll: "Pilih Semua", unsel: "Batal Pilih",
+  selDone: "{n} aplikasi dipilih", unselDone: "Pilihan dibatalkan",
+  protMsg: "Aplikasi sistem penting tidak bisa dibatasi",
+  rec: "Rekomendasi",
+  recHint: "Umumnya aman dibatasi di latar belakang. Bukan jaminan: jangan batasi aplikasi yang notifikasinya kamu butuhkan.",
+  navHome: "Beranda", navTw: "Tweaks", navDb: "Debloat", navSet: "Setelan",
+  twTitle: "Tweaks", twSub: "Renderer & performa · MediaTek (Helio & Dimensity)",
+  twWT: "Perhatian",
+  twWP: "Tweak mengubah pengaturan sistem dan hasilnya bisa berbeda di tiap ROM dan HP. Kalau ada masalah, tekan Kembalikan ke bawaan atau nonaktifkan modul.",
+  devT: "Perangkat", devPlat: "Chipset", devGov: "Governor CPU", devGpu: "Governor GPU",
+  devRend: "Renderer aktif", devAnim: "Skala animasi", devDef: "Bawaan",
+  mtOk: "MediaTek terdeteksi", mtNo: "Bukan MediaTek: tweak CPU/GPU dilewati",
+  monT: "Monitor performa (ketuk untuk menyegarkan)", monRam: "RAM terpakai", monSwap: "Swap / zRAM",
+  monBat: "Suhu baterai", monCpu: "Suhu CPU", monSto: "Penyimpanan", monLd: "Beban CPU",
+  monCl: "Cluster {n}",
+  monHot: "HP sedang panas. Pertimbangkan profil Standar atau tutup aplikasi yang berat.",
+  rendT: "Renderer", rDef: "Bawaan", rGl: "Skia GL", rVk: "Skia Vulkan",
+  rH0: "Memakai renderer bawaan sistem.",
+  rH1: "OpenGL: paling stabil dan kompatibel.",
+  rH2: "Vulkan: bisa lebih halus, tapi beberapa aplikasi bisa glitch. Kalau ada masalah, kembali ke Bawaan.",
+  rNote: "Berlaku untuk aplikasi yang dibuka ulang. Reboot agar seluruh sistem ikut.",
+  animT: "Kecepatan animasi", a1: "1x", a05: "0,5x", a03: "0,3x", a0: "Mati",
+  aH: "Makin kecil makin terasa cepat. Mati = tanpa animasi sistem.",
+  hzT: "Refresh rate", hzDef: "Bawaan",
+  hzH: "Mengunci refresh rate layar. Tinggi = lebih halus tapi boros baterai, rendah = lebih hemat. Hasilnya tergantung dukungan ROM.",
+  perfT: "Profil performa", pStd: "Standar", pResp: "Responsif", pPerf: "Performa",
+  pH0: "Tidak mengubah pengaturan CPU/GPU bawaan.",
+  pH1: "CPU lebih cepat naik frekuensi saat disentuh. Baterai tetap wajar.",
+  pH2: "Peringatan: CPU/GPU dikunci mode performa. Paling mulus, tapi HP jadi lebih panas dan boros baterai.",
+  blurT: "Matikan blur jendela", blurS: "Meringankan GPU. Efek blur sistem hilang.",
+  memT: "Optimasi memori & I/O", memS: "Atur cache dan baca-depan penyimpanan agar lebih responsif.",
+  scanT: "Hentikan pemindaian latar belakang", scanS: "Matikan pemindaian Wi-Fi dan Bluetooth saat layar mati. Hemat baterai dan CPU.",
+  mainT: "Perawatan",
+  acT: "Perawatan otomatis", acS: "Tiap 7 hari saat boot: bersihkan cache dan TRIM penyimpanan di latar belakang.",
+  killT: "Tutup aplikasi latar belakang", killS: "Hentikan semua proses cache (aman)", killOk: "Aplikasi latar belakang ditutup",
+  ramT: "Bersihkan RAM sekarang", ramS: "Kosongkan cache sistem (sementara)", ramOk: "Cache RAM dibersihkan",
+  trimT: "Bersihkan cache semua aplikasi", trimS: "Kosongkan ruang cache aplikasi", trimOk: "Cache aplikasi dibersihkan",
+  junkT: "Bersihkan log & laporan crash", junkS: "Hapus log sistem dan file laporan crash lama", junkOk: "Log dan laporan crash dibersihkan",
+  ftT: "Optimasi penyimpanan (TRIM)", ftS: "Jaga kecepatan baca-tulis penyimpanan", ftOk: "TRIM selesai",
+  dexT: "Optimasi aplikasi (dexopt)", dexS: "Proses di latar belakang, bisa beberapa menit",
+  dexArm: "Ketuk lagi untuk mulai (HP bisa hangat)", dexOk: "Optimasi berjalan di latar belakang",
+  twResetT: "Kembalikan ke bawaan", twResetS: "Batalkan semua tweak di halaman ini", twResetOk: "Tweak dikembalikan",
+  twOk: "Tweak diterapkan", twErr: "Gagal menerapkan, cek akses root",
+  advT: "Lanjutan", resRow: "Resolusi layar", resNA: "Tidak tersedia",
+  dbRow: "Debloat", dbRowS: "Hapus aplikasi sistem yang tidak perlu, dengan penilaian keamanan",
+  resTitle: "Resolusi layar", resSub: "Turunkan agar lebih ringan, naikkan agar lebih tajam",
+  back: "Kembali",
+  resWT: "Peringatan",
+  resW: [
+    "Resolusi diubah di level sistem dan memengaruhi semua aplikasi.",
+    "Di bawah bawaan: tampilan kurang tajam, dan beberapa aplikasi atau game bisa salah ukuran.",
+    "Di atas 100%: GPU bekerja jauh lebih berat, HP bisa panas dan boros baterai, dan tidak semua HP mendukung.",
+    "Setelah diterapkan ada konfirmasi 15 detik. Kalau tidak ditekan Pertahankan, resolusi otomatis kembali.",
+    "Jangan ubah saat bermain game atau merekam layar."
+  ],
+  resCurT: "Saat ini", resPhys: "Resolusi bawaan", resNow: "Resolusi saat ini",
+  resPickT: "Skala resolusi", resPrevT: "Hasil: {s} · {d} dpi",
+  riskL: ["Aman", "Hati-hati", "Berisiko"],
+  riskN: [
+    "Perubahan kecil, umumnya aman.",
+    "Tampilan mulai kurang tajam atau lebih berat. Beberapa aplikasi bisa terlihat tidak pas.",
+    "Perubahan besar. Teks bisa buram atau tampilan bermasalah, dan di atas 100% HP bisa panas."
+  ],
+  cwTitle: "Yakin ingin lanjut?", cwText: "Skala {p}% ({s}). ", cwGo: "Lanjutkan", cwNo: "Batal",
+  resApply: "Terapkan resolusi", resSame: "Sudah dipakai",
+  resReset: "Kembalikan resolusi bawaan", resResetS: "Hapus semua perubahan resolusi", resResetOk: "Resolusi dikembalikan",
+  mTitle: "Pertahankan resolusi ini?", mText: "Kembali otomatis dalam {n} detik",
+  mKeep: "Pertahankan", mUndo: "Kembalikan",
+  resKept: "Resolusi dipertahankan", resUndone: "Resolusi dikembalikan", resErr: "Gagal mengubah resolusi",
+  dbTitle: "Debloat", dbSub: "Hapus bloatware dengan penilaian keamanan",
+  dbWT: "Baca dulu",
+  dbW: [
+    "Aplikasi dihapus hanya untuk pengguna ini dan bisa dipulihkan dari filter Dihapus.",
+    "Penilaian keamanan adalah panduan umum dan bisa berbeda di tiap HP atau ROM.",
+    "Aplikasi bertanda Terkunci tidak bisa dipilih karena menghapusnya bisa membuat HP bootloop atau rusak.",
+    "Reset pabrik juga memulihkan semuanya.",
+    "Jangan menghapus aplikasi yang tidak kamu kenali."
+  ],
+  dbLgT: "Arti penilaian",
+  dbL: ["Aman", "Hati-hati", "Ahli", "Terkunci"],
+  dbLD: [
+    "Aman dihapus. Tidak memengaruhi fungsi inti HP.",
+    "Boleh dihapus, tapi fitur terkait ikut hilang (galeri, browser, dan sejenisnya).",
+    "Hanya untuk yang paham. Bisa mengganggu fitur sistem.",
+    "Terkunci. Menghapusnya bisa membuat HP bootloop atau rusak."
+  ],
+  dbF: ["Semua", "Aman", "Hati-hati", "Ahli", "Terkunci", "Dihapus"],
+  dbSearch: "Cari aplikasi sistem...",
+  dbCnt: "Terpasang {n} · Dihapus {m}",
+  dbLoading: "Memuat daftar...", dbFail: "Gagal memuat. Pastikan debloat.sh ada di folder NezScript.",
+  dbNone: "Tidak ada aplikasi di filter ini",
+  dbDenied: "Terkunci: tidak bisa dihapus",
+  dbRuleG: "Aplikasi Google. Umumnya aman dihapus, tapi fitur terkait ikut hilang.",
+  dbRuleT: "Komponen Transsion. Bisa terkait fitur sistem, hati-hati.",
+  dbRuleU: "Tidak ada di daftar penilaian. Hanya hapus kalau kamu yakin.",
+  dbRuleL: "Komponen inti sistem.",
+  dbGo: "Hapus ({n})", dbGoNone: "Pilih aplikasi dulu", dbRestore: "Pulihkan ({n})",
+  dbConfirmT: "Hapus {n} aplikasi?",
+  dbConfirmX: "{a} aman, {b} hati-hati, {c} ahli. ",
+  dbConfirmW: "Yang bertanda Hati-hati atau Ahli bisa menghilangkan fitur. Bisa dipulihkan dari filter Dihapus.",
+  dbConfirmS: "Semuanya bertanda Aman. Bisa dipulihkan dari filter Dihapus.",
+  dbConfirmGo: "Hapus",
+  dbRestoreT: "Pulihkan {n} aplikasi?", dbRestoreX: "Aplikasi akan dipasang kembali untuk pengguna ini.", dbRestoreGo: "Pulihkan",
+  dbProg: "Memproses {a}/{b}...", dbDone: "Selesai: {ok} berhasil, {fail} gagal",
+  dbBackup: "Simpan daftar yang dihapus", dbBackupS: "Ke /sdcard/Download/nez_debloat_backup.txt", dbBackupOk: "Cadangan disimpan",
+  setTitle: "Setelan", setSub: "Kelola modul Nez Optimise",
+  rCache: "Hapus cache sekarang", rCacheS: "Launcher dan SystemUI",
+  rOvl: "Aktifkan ulang overlay", rOvlS: "Nyalakan overlay yang belum aktif",
+  rLog: "Lihat log", rLogS: "Catatan service.sh saat boot",
+  rBoot: "Reboot", rBootS: "Diperlukan untuk menerapkan Always Dynamic Bar",
+  bootConfirm: "Ketuk lagi untuk reboot",
+  okCache: "Cache dihapus", okOvl: "Overlay diperiksa & diaktifkan", noLog: "Log belum ada",
+  about: "Tentang modul", name: "Nama", ver: "Versi", author: "Pembuat",
+  ap: "Tampilan", th: "Tema", thD: "Gelap", thL: "Terang",
+  bgT: "Latar", dimT: "Redupkan latar", pathT: "Latar dari path file", load: "Muat",
+  pathH: "Kalau tombol gambar tidak membuka galeri, tulis path file lalu ketuk Muat.",
+  okBg: "Latar diganti", bigImg: "Gambar tidak bisa dimuat", noFile: "File tidak ditemukan",
+  reset: "Atur ulang tampilan", resetS: "Tema gelap dan latar bawaan", okReset: "Tampilan diatur ulang"
+} : {
+  search: "Search app / package...", user: "User apps", all: "All",
+  save: "Save & Apply", sel: "Selected", saved: "Saved & applied",
+  err: "Failed, check root / module ID", empty: "No apps found",
+  dynT: "Always Dynamic Bar", dynS: "Turn off to disable (reboot required)",
+  dynOk: "Saved, reboot to apply",
+  selAll: "Select All", unsel: "Deselect",
+  selDone: "{n} apps selected", unselDone: "Selection cleared",
+  protMsg: "Essential system apps cannot be restricted",
+  rec: "Recommended",
+  recHint: "Usually safe to restrict in the background. Not a guarantee: do not restrict apps whose notifications you need.",
+  navHome: "Home", navTw: "Tweaks", navDb: "Debloat", navSet: "Settings",
+  twTitle: "Tweaks", twSub: "Renderer & performance · MediaTek (Helio & Dimensity)",
+  twWT: "Heads up",
+  twWP: "Tweaks change system settings and results vary between ROMs and phones. If something goes wrong, tap Restore defaults or disable the module.",
+  devT: "Device", devPlat: "Chipset", devGov: "CPU governor", devGpu: "GPU governor",
+  devRend: "Active renderer", devAnim: "Animation scale", devDef: "Default",
+  mtOk: "MediaTek detected", mtNo: "Not MediaTek: CPU/GPU tweaks skipped",
+  monT: "Performance monitor (tap to refresh)", monRam: "RAM used", monSwap: "Swap / zRAM",
+  monBat: "Battery temp", monCpu: "CPU temp", monSto: "Storage", monLd: "CPU load",
+  monCl: "Cluster {n}",
+  monHot: "Your phone is hot. Consider the Standard profile or close heavy apps.",
+  rendT: "Renderer", rDef: "Default", rGl: "Skia GL", rVk: "Skia Vulkan",
+  rH0: "Uses the system default renderer.",
+  rH1: "OpenGL: most stable and compatible.",
+  rH2: "Vulkan: can be smoother, but some apps may glitch. If you see problems, go back to Default.",
+  rNote: "Applies to apps you reopen. Reboot for the whole system to follow.",
+  animT: "Animation speed", a1: "1x", a05: "0.5x", a03: "0.3x", a0: "Off",
+  aH: "Smaller feels faster. Off = no system animations.",
+  hzT: "Refresh rate", hzDef: "Default",
+  hzH: "Locks the display refresh rate. Higher = smoother but uses more battery, lower = saves power. Results depend on ROM support.",
+  perfT: "Performance profile", pStd: "Standard", pResp: "Responsive", pPerf: "Performance",
+  pH0: "Leaves the default CPU/GPU settings untouched.",
+  pH1: "CPU ramps up faster on touch. Battery stays reasonable.",
+  pH2: "Warning: CPU/GPU locked to performance mode. Smoothest, but the phone gets hotter and drains battery.",
+  blurT: "Disable window blur", blurS: "Lightens the GPU. System blur effects disappear.",
+  memT: "Memory & I/O tuning", memS: "Tunes cache and storage read-ahead for better responsiveness.",
+  scanT: "Stop background scanning", scanS: "Turns off Wi-Fi and Bluetooth scanning while the screen is off. Saves battery and CPU.",
+  mainT: "Maintenance",
+  acT: "Auto maintenance", acS: "Every 7 days at boot: clear caches and TRIM storage in the background.",
+  killT: "Close background apps", killS: "Stop all cached processes (safe)", killOk: "Background apps closed",
+  ramT: "Clear RAM now", ramS: "Drop system caches (temporary)", ramOk: "RAM cache cleared",
+  trimT: "Clear all app caches", trimS: "Free app cache space", trimOk: "App caches cleared",
+  junkT: "Clear logs & crash reports", junkS: "Remove system logs and old crash report files", junkOk: "Logs and crash reports cleared",
+  ftT: "Storage optimization (TRIM)", ftS: "Keeps storage read/write speed healthy", ftOk: "TRIM finished",
+  dexT: "App optimization (dexopt)", dexS: "Runs in the background, can take a few minutes",
+  dexArm: "Tap again to start (phone may get warm)", dexOk: "Optimization running in the background",
+  twResetT: "Restore defaults", twResetS: "Undo every tweak on this page", twResetOk: "Tweaks restored",
+  twOk: "Tweaks applied", twErr: "Failed to apply, check root",
+  advT: "Advanced", resRow: "Screen resolution", resNA: "Not available",
+  dbRow: "Debloat", dbRowS: "Remove unneeded system apps, with safety ratings",
+  resTitle: "Screen resolution", resSub: "Lower for lighter, raise for sharper",
+  back: "Back",
+  resWT: "Warning",
+  resW: [
+    "Resolution is changed at system level and affects every app.",
+    "Below native: the display is less sharp, and some apps or games may be sized wrongly.",
+    "Above 100%: the GPU works much harder, the phone can get hot and drain battery, and not every phone supports it.",
+    "A 15-second confirmation appears after applying. If you do not tap Keep, the resolution reverts automatically.",
+    "Do not change it while gaming or recording the screen."
+  ],
+  resCurT: "Current", resPhys: "Native resolution", resNow: "Current resolution",
+  resPickT: "Resolution scale", resPrevT: "Result: {s} · {d} dpi",
+  riskL: ["Safe", "Caution", "Risky"],
+  riskN: [
+    "Small change, generally safe.",
+    "The display gets less sharp or heavier. Some apps may look off.",
+    "Big change. Text may look blurry or the UI may break, and above 100% the phone can run hot."
+  ],
+  cwTitle: "Continue anyway?", cwText: "Scale {p}% ({s}). ", cwGo: "Continue", cwNo: "Cancel",
+  resApply: "Apply resolution", resSame: "Already in use",
+  resReset: "Restore native resolution", resResetS: "Remove every resolution change", resResetOk: "Resolution restored",
+  mTitle: "Keep this resolution?", mText: "Reverting automatically in {n} seconds",
+  mKeep: "Keep", mUndo: "Revert",
+  resKept: "Resolution kept", resUndone: "Resolution reverted", resErr: "Failed to change resolution",
+  dbTitle: "Debloat", dbSub: "Remove bloatware with safety ratings",
+  dbWT: "Read first",
+  dbW: [
+    "Apps are removed for this user only and can be restored from the Removed filter.",
+    "Safety ratings are general guidance and can differ between phones and ROMs.",
+    "Apps marked Locked cannot be selected because removing them can bootloop or break the phone.",
+    "A factory reset also restores everything.",
+    "Do not remove apps you do not recognize."
+  ],
+  dbLgT: "Rating meaning",
+  dbL: ["Safe", "Caution", "Expert", "Locked"],
+  dbLD: [
+    "Safe to remove. Does not affect core phone functions.",
+    "Can be removed, but related features go with it (gallery, browser, and so on).",
+    "For people who know what they are doing. May break system features.",
+    "Locked. Removing it can bootloop or break the phone."
+  ],
+  dbF: ["All", "Safe", "Caution", "Expert", "Locked", "Removed"],
+  dbSearch: "Search system apps...",
+  dbCnt: "Installed {n} · Removed {m}",
+  dbLoading: "Loading list...", dbFail: "Failed to load. Make sure debloat.sh is in the NezScript folder.",
+  dbNone: "No apps in this filter",
+  dbDenied: "Locked: cannot be removed",
+  dbRuleG: "Google app. Usually safe to remove, but related features go with it.",
+  dbRuleT: "Transsion component. May be tied to system features, be careful.",
+  dbRuleU: "Not in the rating list. Only remove it if you are sure.",
+  dbRuleL: "Core system component.",
+  dbGo: "Remove ({n})", dbGoNone: "Select apps first", dbRestore: "Restore ({n})",
+  dbConfirmT: "Remove {n} apps?",
+  dbConfirmX: "{a} safe, {b} caution, {c} expert. ",
+  dbConfirmW: "Apps marked Caution or Expert can remove features. You can restore them from the Removed filter.",
+  dbConfirmS: "All are marked Safe. You can restore them from the Removed filter.",
+  dbConfirmGo: "Remove",
+  dbRestoreT: "Restore {n} apps?", dbRestoreX: "The apps will be installed again for this user.", dbRestoreGo: "Restore",
+  dbProg: "Working {a}/{b}...", dbDone: "Done: {ok} succeeded, {fail} failed",
+  dbBackup: "Save removed list", dbBackupS: "To /sdcard/Download/nez_debloat_backup.txt", dbBackupOk: "Backup saved",
+  setTitle: "Settings", setSub: "Manage the Nez Optimise module",
+  rCache: "Clear cache now", rCacheS: "Launcher and SystemUI",
+  rOvl: "Re-enable overlays", rOvlS: "Turn on overlays that are off",
+  rLog: "View log", rLogS: "service.sh boot notes",
+  rBoot: "Reboot", rBootS: "Needed to apply Always Dynamic Bar",
+  bootConfirm: "Tap again to reboot",
+  okCache: "Cache cleared", okOvl: "Overlays checked & enabled", noLog: "No log yet",
+  about: "About module", name: "Name", ver: "Version", author: "Author",
+  ap: "Appearance", th: "Theme", thD: "Dark", thL: "Light",
+  bgT: "Background", dimT: "Dim background", pathT: "Background from file path", load: "Load",
+  pathH: "If the image button does not open the gallery, type a file path and tap Load.",
+  okBg: "Background changed", bigImg: "Could not load image", noFile: "File not found",
+  reset: "Reset appearance", resetS: "Dark theme and default background", okReset: "Appearance reset"
+};
+
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const ss = (a, b, x) => { x = clamp((x - a) / (b - a), 0, 1); return x * x * (3 - 2 * x); };
+function parseKV(s) {
+  const m = {};
+  s.split("\n").forEach(l => {
+    const i = l.indexOf("=");
+    if (i > 0) m[l.slice(0, i).trim()] = l.slice(i + 1).trim();
+  });
+  return m;
+}
+
+/* Ukuran elemen disimpan agar tidak dibaca ulang tiap frame */
+const _w = new Map();
+function cw(el) {
+  let w = _w.get(el);
+  if (!w) { w = el.offsetWidth; if (w) _w.set(el, w); }
+  return w || 0;
+}
+window.addEventListener("resize", () => _w.clear());
+
+function exec(cmd) {
+  return new Promise(res => {
+    const cb = "cb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    window[cb] = (errno, out, err) => { res({ errno, out, err }); delete window[cb]; };
+    try { ksu.exec(cmd, "{}", cb); } catch (e) { res({ errno: 1, out: "", err: String(e) }); }
+  });
+}
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (_) { return false; } },
+  del(k) { try { localStorage.removeItem(k); } catch (_) {} }
+};
+
+let apps = [], sel = new Set(), showAll = false, query = "", shown = [];
+let subEl = null, subOpen = false;
+
+/* ===== Rekomendasi: umumnya aman dibatasi di latar belakang ===== */
+const REC_EXACT = new Set([
+  "com.facebook.katana","com.facebook.lite","com.facebook.appmanager","com.facebook.services","com.facebook.system",
+  "com.instagram.android","com.instagram.lite","com.zhiliaoapp.musically","com.ss.android.ugc.trill","com.ss.android.ugc.aweme",
+  "com.twitter.android","com.pinterest","com.snapchat.android","com.reddit.frontpage","com.netflix.mediaclient",
+  "com.disney.disneyplus","com.google.android.youtube","com.vidio.android",
+  "com.tokopedia.tkpd","com.lazada.android","com.bukalapak.android","com.alibaba.aliexpresshd",
+  "com.amazon.mshop.android.shopping","com.zzkko",
+  "com.mobile.legends","com.tencent.ig","com.dts.freefireth","com.dts.freefiremax","com.roblox.client",
+  "com.kiloo.subwaysurf","com.innersloth.spacemafia"
+]);
+const REC_PREFIX = [
+  "com.shopee.","com.garena.","com.supercell.","com.mihoyo.","com.hoyoverse.","com.activision.","com.king.",
+  "com.tencent.tmgp","com.proximabeta.","com.levelinfinite.","com.netease.","com.gameloft.","com.mojang.",
+  "com.ketchapp.","com.halfbrick.","com.rovio.","com.fungames.","com.voodoo.","com.ea.game."
+];
+function isRec(p) {
+  p = p.toLowerCase();
+  return REC_EXACT.has(p) || REC_PREFIX.some(x => p.startsWith(x));
+}
+
+/* ===== Aplikasi penting yang dikunci (tidak bisa dibatasi) ===== */
+const PROT_PREFIX = [
+  "com.android.systemui","com.android.phone","com.android.server.telecom","com.android.providers.",
+  "com.android.settings","com.android.bluetooth","com.android.nfc","com.android.shell",
+  "com.android.inputmethod","com.android.permissioncontroller","com.android.packageinstaller",
+  "com.android.vending","com.android.webview","com.android.networkstack","com.android.cellbroadcast",
+  "com.android.emergency","com.android.location","com.android.keychain","com.android.certinstaller",
+  "com.google.android.gms","com.google.android.gsf","com.google.android.permissioncontroller",
+  "com.google.android.packageinstaller","com.google.android.webview","com.google.android.inputmethod",
+  "com.google.android.ext.","com.google.android.networkstack","com.google.android.captiveportallogin",
+  "me.weishu.kernelsu","com.topjohnwu.magisk","com.rifsxd.ksunext","com.sukisu",
+  "io.github.a13e300.ksuwebui","com.dergoogler.mmrl",
+  "com.mediatek.","com.qualcomm.","com.sprd.","com.unisoc."
+];
+let homePkg = "", imePkg = "";
+function isProt(p) {
+  return p === "android" || p === homePkg || p === imePkg || PROT_PREFIX.some(x => p.startsWith(x));
+}
+async function loadGuards() {
+  const r = await exec(
+    "echo \"H=$(cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN 2>/dev/null | tail -n 1 | cut -d/ -f1)\"; " +
+    "echo \"I=$(settings get secure default_input_method 2>/dev/null | cut -d/ -f1)\"");
+  r.out.split("\n").forEach(l => {
+    l = l.trim();
+    if (l.startsWith("H=")) homePkg = l.slice(2);
+    else if (l.startsWith("I=")) imePkg = l.slice(2) === "null" ? "" : l.slice(2);
+  });
+}
+
+function bump() {
+  const i = $("info");
+  i.classList.remove("bump"); void i.offsetWidth; i.classList.add("bump");
+}
+
+/* Hapus kelas animasi masuk setelah selesai */
+document.addEventListener("animationend", e => {
+  const c = e.target.classList;
+  if (c && (c.contains("rise") || c.contains("enter"))) c.remove("rise", "enter");
+});
+
+/* ===== Cahaya mengikuti sentuhan ===== */
+let lit = null;
+function moveLight(e) {
+  if (!lit) return;
+  const r = lit.getBoundingClientRect();
+  lit.style.setProperty("--mx", (e.clientX - r.left) + "px");
+  lit.style.setProperty("--my", (e.clientY - r.top) + "px");
+}
+document.addEventListener("pointerdown", e => {
+  const t = e.target.closest && e.target.closest(".tg");
+  if (!t) return;
+  lit = t; moveLight(e); t.classList.add("lit");
+}, { passive: true });
+document.addEventListener("pointermove", moveLight, { passive: true });
+function unlit() { if (lit) { lit.classList.remove("lit"); lit = null; } }
+document.addEventListener("pointerup", unlit, { passive: true });
+document.addEventListener("pointercancel", unlit, { passive: true });
+
+/* ===== Header menyala saat di-scroll ===== */
+let sTick = false;
+$("pgHome").addEventListener("scroll", () => {
+  if (sTick) return;
+  sTick = true;
+  requestAnimationFrame(() => {
+    $("hdr").classList.toggle("stuck", $("pgHome").scrollTop > 6);
+    sTick = false;
+  });
+}, { passive: true });
+
+/* =====================================================
+   Slider fisika pegas (saklar, segmen, navigasi bawah)
+   o.n = jumlah posisi (default 2), o.k = kekakuan, o.c = redaman
+   Untuk n = 2: tap/onChange memakai boolean. Untuk n > 2: indeks.
+   ===================================================== */
+function makeSlider(el, o) {
+  const K = o.k || 300, C = o.c || 22, N = o.n || 2, MAX = N - 1;
+  const S = { pos: 0, vel: 0, on: false, idx: 0 };
+  let tgt = 0, pr = 0, prv = 0, down = false, moved = false;
+  let sx = 0, sp = 0, raw = 0, raf = 0, last = 0;
+
+  function frame(t) {
+    const dt = Math.min(0.032, ((t - last) / 1000) || 0.016);
+    last = t;
+
+    prv += (((down ? 1 : 0) - pr) * 380 - prv * 26) * dt;
+    pr += prv * dt;
+
+    if (down) {
+      const a = 1 - Math.exp(-dt * 28);
+      const np = S.pos + (raw - S.pos) * a;
+      S.vel += (((np - S.pos) / dt) - S.vel) * 0.35;
+      S.pos = np;
+    } else {
+      S.vel += ((tgt - S.pos) * K - S.vel * C) * dt;
+      S.pos += S.vel * dt;
+    }
+
+    o.render(S.pos, S.vel, pr);
+
+    const calm = !down && Math.abs(S.vel) < 0.01 && Math.abs(S.pos - tgt) < 0.0008 &&
+                 Math.abs(pr) < 0.001 && Math.abs(prv) < 0.01;
+    if (calm) {
+      S.pos = tgt; S.vel = 0; pr = 0; prv = 0;
+      o.render(S.pos, 0, 0);
+      raf = 0;
+      return;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function kick() {
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
+  }
+
+  el.addEventListener("pointerdown", e => {
+    try { el.setPointerCapture(e.pointerId); } catch (_) {}
+    down = true; moved = false; sx = e.clientX; sp = S.pos; raw = S.pos;
+    kick();
+  });
+
+  el.addEventListener("pointermove", e => {
+    if (!down) return;
+    const dx = e.clientX - sx;
+    if (Math.abs(dx) > 3) moved = true;
+    if (moved) {
+      let r = sp + dx / o.travel();
+      r = r < 0 ? r * 0.25 : r > MAX ? MAX + (r - MAX) * 0.25 : r;
+      raw = clamp(r, -0.15, MAX + 0.15);
+    }
+  });
+
+  function up(e) {
+    if (!down) return;
+    down = false;
+    let t;
+    if (e.type === "pointercancel") t = Math.round(clamp(S.pos, 0, MAX));
+    else if (moved) t = Math.round(clamp(S.pos + S.vel * 0.12, 0, MAX));
+    else t = o.tap(e, S);
+    if (typeof t === "boolean") t = t ? 1 : 0;
+    tgt = t;
+    const changed = t !== S.idx;
+    S.idx = t; S.on = t === 1;
+    kick();
+    if (changed) {
+      try { navigator.vibrate && navigator.vibrate(8); } catch (_) {}
+      o.onChange(N === 2 ? t === 1 : t);
+    }
+  }
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+
+  S.set = v => {
+    const t = typeof v === "boolean" ? (v ? 1 : 0) : v;
+    S.idx = t; S.on = t === 1; tgt = t; S.pos = t; S.vel = 0;
+    o.render(S.pos, 0, 0);
+  };
+  return S;
+}
+
+/* Render lensa untuk slider segmen */
+function segRender(lens, ids, gap) {
+  const MAX = ids.length - 1;
+  return (pos, vel, pr) => {
+    const w = cw(lens);
+    const x = clamp(pos, -0.12, MAX + 0.12);
+    const st = Math.min(0.3, Math.abs(vel) * 0.05);
+    lens.style.transform =
+      "translate3d(" + (x * (w + gap)) + "px,0,0) scale(" + (1 + 0.06 * pr + st * 0.6) + "," + (1 + 0.12 * pr - st * 0.3) + ")";
+    const cur = Math.round(clamp(pos, 0, MAX));
+    ids.forEach((id, i) => $(id).classList.toggle("on", i === cur));
+  };
+}
+function segTap(el, n) {
+  n = n || 2;
+  return e => {
+    const r = el.getBoundingClientRect();
+    return clamp(Math.floor(((e.clientX - r.left) / r.width) * n), 0, n - 1);
+  };
+}
+
+/* Saklar liquid glass */
+function makeSwitch(el, onChange) {
+  const kn = el.firstElementChild;
+  return makeSlider(el, {
+    travel: () => 22,
+    tap: (e, S) => !S.on,
+    render: (pos, vel, pr) => {
+      const x = clamp(pos, -0.15, 1.15);
+      const st = Math.min(0.3, Math.abs(vel) * 0.05);
+      kn.style.transform =
+        "translate3d(" + (x * 22) + "px,0,0) scale(" + (1 + 0.22 * pr + st) + "," + (1 + 0.04 * pr - st * 0.4) + ")";
+      el.style.setProperty("--p", clamp(pos, 0, 1));
+      el.setAttribute("aria-checked", pos > 0.5);
+    },
+    onChange
+  });
+}
+
+/* ===== Saklar Always Dynamic Bar ===== */
+const swSlider = makeSwitch($("dyn"), on => setDyn(on));
+
+async function loadDyn() {
+  const r = await exec("grep -m1 '^" + KEY + "=' " + PROP);
+  swSlider.set(r.out.trim().endsWith("=1"));
+}
+
+async function setDyn(on) {
+  const cmd =
+    "sed -i 's/^" + KEY + "=.*/" + KEY + "=" + (on ? 1 : 0) + "/' " + PROP + "; " +
+    "mkdir -p " + DIR + "; " +
+    (on ? "rm -f " + FLAG : "touch " + FLAG) + "; " +
+    "for p in $(cmd overlay list --user 0 | grep -i dynamicbar | sed 's/^\\[.\\] *//'); do " +
+    "cmd overlay " + (on ? "enable" : "disable") + " --user 0 $p; done";
+  const r = await exec(cmd);
+  toast(r.errno === 0 ? T.dynOk : T.err);
+}
+
+/* ===== Tab Aplikasi User / Semua ===== */
+const tabs = $("tabs"), tlens = tabs.querySelector(".lens");
+const tabSlider = makeSlider(tabs, {
+  travel: () => cw(tlens) + 6,
+  tap: segTap(tabs, 2),
+  render: segRender(tlens, ["tUser", "tAll"], 6),
+  onChange: on => { showAll = on; swapList(); }
+});
+
+/* ===== Tema Gelap / Terang ===== */
+let theme = store.get("nez_theme", "dark") === "light" ? "light" : "dark";
+function applyTheme(t, anim) {
+  theme = t;
+  document.documentElement.dataset.theme = t;
+  document.querySelector('meta[name="color-scheme"]').content = t === "light" ? "light" : "dark";
+  if (anim) {
+    document.body.classList.remove("tswap"); void document.body.offsetWidth;
+    document.body.classList.add("tswap");
+  }
+}
+const thSeg = $("themeSeg"), thLens = thSeg.querySelector(".lens");
+const themeSlider = makeSlider(thSeg, {
+  travel: () => cw(thLens) + 6,
+  tap: segTap(thSeg, 2),
+  render: segRender(thLens, ["thD", "thL"], 6),
+  onChange: on => {
+    const t = on ? "light" : "dark";
+    store.set("nez_theme", t);
+    applyTheme(t, true);
+  }
+});
+
+/* ===== Latar / wallpaper ===== */
+const PRESETS = {
+  aurora: ["59 130 246", "168 85 247", "16 217 160"],
+  sunset: ["255 138 76", "236 72 153", "139 92 246"],
+  ocean:  ["34 211 238", "59 130 246", "20 184 166"],
+  forest: ["74 222 128", "16 185 129", "132 204 22"],
+  rose:   ["244 114 182", "239 68 68", "168 85 247"],
+  mono:   ["148 163 184", "100 116 139", "203 213 225"]
+};
+let bgKey = store.get("nez_bg", "aurora");
+let wall = store.get("nez_wall", "");
+let dimV = parseInt(store.get("nez_dim", "35"), 10);
+if (isNaN(dimV)) dimV = 35;
+if (bgKey === "img" && !wall) bgKey = "aurora";
+if (bgKey !== "img" && !PRESETS[bgKey]) bgKey = "aurora";
+
+const bgEl = $("bg");
+
+function applyBg() {
+  const root = document.documentElement.style;
+  if (bgKey === "img" && wall) {
+    bgEl.classList.add("img");
+    bgEl.style.backgroundImage = 'url("' + wall + '")';
+  } else {
+    bgEl.classList.remove("img");
+    bgEl.style.backgroundImage = "";
+    const p = PRESETS[bgKey] || PRESETS.aurora;
+    root.setProperty("--c1", p[0]); root.setProperty("--c2", p[1]); root.setProperty("--c3", p[2]);
+  }
+  root.setProperty("--dim", dimV / 100);
+  const d = $("dim");
+  d.value = dimV;
+  d.style.setProperty("--v", (dimV / 80 * 100) + "%");
+  $("imgFold").classList.toggle("open", bgKey === "img");
+  markSwatches();
+}
+
+function markSwatches() {
+  document.querySelectorAll("#swatches .sq").forEach(b => b.classList.toggle("sel", b.dataset.k === bgKey));
+  const im = $("sqImg");
+  if (im) {
+    if (wall) { im.classList.add("has"); im.style.backgroundImage = 'url("' + wall + '")'; }
+    else { im.classList.remove("has"); im.style.backgroundImage = ""; }
+  }
+}
+
+function popSq(b) { b.classList.remove("pop2"); void b.offsetWidth; b.classList.add("pop2"); }
+
+function buildSwatches() {
+  const box = $("swatches"); box.innerHTML = "";
+  Object.keys(PRESETS).forEach(k => {
+    const p = PRESETS[k];
+    const b = document.createElement("button");
+    b.className = "sq"; b.dataset.k = k; b.setAttribute("aria-label", k);
+    b.style.background = "linear-gradient(135deg,rgb(" + p[0] + "),rgb(" + p[1] + ") 55%,rgb(" + p[2] + "))";
+    b.onclick = () => { bgKey = k; store.set("nez_bg", k); applyBg(); popSq(b); };
+    box.append(b);
+  });
+  const im = document.createElement("button");
+  im.className = "sq img"; im.dataset.k = "img"; im.id = "sqImg"; im.setAttribute("aria-label", "image");
+  im.innerHTML = '<svg viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-4.5 3.5 3L16 12l4 4"/></svg>';
+  im.onclick = () => {
+    if (wall && bgKey !== "img") { bgKey = "img"; store.set("nez_bg", "img"); applyBg(); popSq(im); }
+    else $("file").click();
+  };
+  box.append(im);
+}
+
+function useImage(src) {
+  const im = new Image();
+  im.onload = () => {
+    const s = Math.min(1, 1280 / Math.max(im.width, im.height));
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(im.width * s));
+    c.height = Math.max(1, Math.round(im.height * s));
+    c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+    let url;
+    try { url = c.toDataURL("image/jpeg", 0.82); } catch (_) { toast(T.bigImg); return; }
+    store.set("nez_wall", url);
+    wall = url; bgKey = "img"; store.set("nez_bg", "img");
+    applyBg(); toast(T.okBg);
+  };
+  im.onerror = () => toast(T.bigImg);
+  im.src = src;
+}
+
+$("file").onchange = e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => useImage(rd.result);
+  rd.onerror = () => toast(T.bigImg);
+  rd.readAsDataURL(f);
+  e.target.value = "";
+};
+
+$("pathBtn").onclick = async () => {
+  const p = $("path").value.trim();
+  if (!/^\/[\w\/.\-() ]+$/.test(p)) { toast(T.noFile); return; }
+  store.set("nez_path", p);
+  const ext = p.split(".").pop().toLowerCase();
+  const mime = ext === "png" ? "image/png" : ext === "webp" ? "image/webp" : "image/jpeg";
+  const r = await exec("base64 -w0 '" + p + "' 2>/dev/null");
+  if (r.errno !== 0 || !r.out.trim()) { toast(T.noFile); return; }
+  useImage("data:" + mime + ";base64," + r.out.trim());
+};
+
+$("dim").oninput = e => {
+  dimV = parseInt(e.target.value, 10);
+  document.documentElement.style.setProperty("--dim", dimV / 100);
+  e.target.style.setProperty("--v", (dimV / 80 * 100) + "%");
+  store.set("nez_dim", dimV);
+};
+
+$("rReset").onclick = () => {
+  bgKey = "aurora"; wall = ""; dimV = 35;
+  store.del("nez_wall"); store.set("nez_bg", "aurora"); store.set("nez_dim", "35"); store.set("nez_theme", "dark");
+  applyTheme("dark", true);
+  themeSlider.set(false);
+  applyBg();
+  toast(T.okReset);
+};
+
+/* =====================================================
+   Tweaks (NezScript/tweaks.sh)
+   Catatan: ksu.exec berjalan sinkron dan menahan halaman, jadi
+   panggilan berat tidak diulang otomatis dan ditunda sampai
+   animasi perpindahan halaman selesai.
+   ===================================================== */
+const RENDER_V = ["default", "skiagl", "skiavk"];
+const ANIM_V = ["1.0", "0.5", "0.3", "0"];
+const PROF_V = ["std", "resp", "perf"];
+const TW_DEF = { RENDER: "default", ANIM: "1.0", PROFILE: "std", BLUR: "0", SCAN: "0", MEM: "0", HZ: "default", AUTOCLEAN: "0" };
+let tw = Object.assign({}, TW_DEF);
+
+function setHints() {
+  $("rHint").textContent = [T.rH0, T.rH1, T.rH2][RENDER_V.indexOf(tw.RENDER)];
+  $("rHint").classList.toggle("warn", tw.RENDER === "skiavk");
+  $("pHint").textContent = [T.pH0, T.pH1, T.pH2][PROF_V.indexOf(tw.PROFILE)];
+  $("pHint").classList.toggle("warn", tw.PROFILE === "perf");
+}
+
+let twTimer = 0;
+function queueSave() { clearTimeout(twTimer); twTimer = setTimeout(saveTweaks, 350); }
+
+async function saveTweaks() {
+  const lines = [
+    "RENDER=" + tw.RENDER, "ANIM=" + tw.ANIM, "PROFILE=" + tw.PROFILE,
+    "BLUR=" + tw.BLUR, "SCAN=" + tw.SCAN, "MEM=" + tw.MEM, "HZ=" + tw.HZ, "AUTOCLEAN=" + tw.AUTOCLEAN
+  ];
+  const r = await exec(
+    "mkdir -p " + DIR + "; printf '%s\\n' " + lines.map(l => "'" + l + "'").join(" ") + " > " + TWCONF +
+    "; sh " + TWSCRIPT + " apply");
+  toast(r.errno === 0 ? T.twOk : T.twErr);
+  setTimeout(refreshInfo, 300);
+}
+
+function segFor(id, n, ids, vals, key) {
+  const el = $(id), lens = el.querySelector(".lens");
+  return makeSlider(el, {
+    n,
+    travel: () => cw(lens) + 6,
+    tap: segTap(el, n),
+    render: segRender(lens, ids, 6),
+    onChange: i => { tw[key] = vals[i]; setHints(); queueSave(); }
+  });
+}
+const rSlider = segFor("rSeg", 3, ["rd0", "rd1", "rd2"], RENDER_V, "RENDER");
+const aSlider = segFor("aSeg", 4, ["an0", "an1", "an2", "an3"], ANIM_V, "ANIM");
+const pSlider = segFor("pSeg", 3, ["pf0", "pf1", "pf2"], PROF_V, "PROFILE");
+const blurSlider = makeSwitch($("blurSw"), on => { tw.BLUR = on ? "1" : "0"; queueSave(); });
+const memSlider = makeSwitch($("memSw"), on => { tw.MEM = on ? "1" : "0"; queueSave(); });
+const scanSlider = makeSwitch($("scanSw"), on => { tw.SCAN = on ? "1" : "0"; queueSave(); });
+const acSlider = makeSwitch($("acSw"), on => { tw.AUTOCLEAN = on ? "1" : "0"; queueSave(); });
+
+function applyTwUI() {
+  rSlider.set(Math.max(0, RENDER_V.indexOf(tw.RENDER)));
+  aSlider.set(Math.max(0, ANIM_V.indexOf(tw.ANIM)));
+  pSlider.set(Math.max(0, PROF_V.indexOf(tw.PROFILE)));
+  blurSlider.set(tw.BLUR === "1");
+  memSlider.set(tw.MEM === "1");
+  scanSlider.set(tw.SCAN === "1");
+  acSlider.set(tw.AUTOCLEAN === "1");
+  buildHz();
+  setHints();
+}
+
+/* ===== Refresh rate ===== */
+let hzList = [], hzKey = "";
+function buildHz() {
+  let list = hzList.length ? hzList.slice() : ["60", "90", "120"];
+  if (tw.HZ !== "default" && !list.includes(tw.HZ)) list.push(tw.HZ);
+  list = list.sort((a, b) => a - b);
+  const key = list.join(",");
+  const box = $("hzChips");
+  if (key !== hzKey) {
+    hzKey = key;
+    box.innerHTML = "";
+    [["default", T.hzDef]].concat(list.map(h => [h, h + " Hz"])).forEach(([v, label]) => {
+      const b = document.createElement("button");
+      b.className = "chip2"; b.dataset.v = v; b.textContent = label;
+      b.onclick = () => { tw.HZ = v; markHz(); queueSave(); };
+      box.append(b);
+    });
+  }
+  markHz();
+}
+function markHz() {
+  document.querySelectorAll("#hzChips .chip2").forEach(b => b.classList.toggle("sel", b.dataset.v === tw.HZ));
+}
+
+/* Daftar refresh rate dimuat sekali lalu disimpan (dumpsys lambat) */
+let hzLoaded = false;
+async function loadHz() {
+  if (hzLoaded) return;
+  hzLoaded = true;
+  let cached = store.get("nez_hzlist", "");
+  if (!cached) {
+    const r = await exec("sh " + TWSCRIPT + " hzlist");
+    cached = (r.out || "").trim();
+    if (cached) store.set("nez_hzlist", cached);
+  }
+  const hl = cached.split(/\s+/).filter(Boolean);
+  if (hl.length) { hzList = hl; buildHz(); }
+}
+
+async function refreshInfo() {
+  const r = await exec("sh " + TWSCRIPT + " info");
+  const m = parseKV(r.out);
+  const box = $("devInfo"); box.innerHTML = "";
+  const row = (k, v, cls) => {
+    const d = document.createElement("div");
+    const a = document.createElement("span"); a.textContent = k;
+    const b = document.createElement("b"); b.textContent = v; if (cls) b.className = cls;
+    d.append(a, b); box.append(d);
+  };
+  if (!m.SOC && !m.PLAT && !m.MT) { row(T.devPlat, "-"); return; }
+  row(T.devPlat, m.SOC || m.PLAT || "-");
+  row("", m.MT === "1" ? T.mtOk : T.mtNo, m.MT === "1" ? "okb" : "warn");
+  row(T.devGov, m.GOV || "-");
+  if (m.GGOV) row(T.devGpu, m.GGOV);
+  row(T.devRend, m.REND || T.devDef);
+  row(T.devAnim, m.ANIM && m.ANIM !== "null" ? m.ANIM + "x" : "-");
+  loadHz();
+}
+
+async function loadTweaks() {
+  const r = await exec("cat " + TWCONF + " 2>/dev/null");
+  const m = parseKV(r.out);
+  tw.RENDER = RENDER_V.includes(m.RENDER) ? m.RENDER : TW_DEF.RENDER;
+  tw.ANIM = ANIM_V.includes(m.ANIM) ? m.ANIM : TW_DEF.ANIM;
+  tw.PROFILE = PROF_V.includes(m.PROFILE) ? m.PROFILE : TW_DEF.PROFILE;
+  tw.BLUR = m.BLUR === "1" ? "1" : "0";
+  tw.SCAN = m.SCAN === "1" ? "1" : "0";
+  tw.MEM = m.MEM === "1" ? "1" : "0";
+  tw.HZ = /^(default|\d{2,3})$/.test(m.HZ || "") ? m.HZ : "default";
+  tw.AUTOCLEAN = m.AUTOCLEAN === "1" ? "1" : "0";
+  applyTwUI();
+  setTimeout(refreshInfo, 500);
+  setTimeout(loadRes, 900);
+}
+
+/* ===== Monitor performa: dimuat sekali, ketuk kartu untuk menyegarkan ===== */
+let monTimer = 0, monBusy = false, fqBuilt = 0;
+function monStart() { clearTimeout(monTimer); monTimer = setTimeout(monTick, 700); }
+function monStop() { clearTimeout(monTimer); monTimer = 0; }
+
+function setTile(p, text, ratio, level) {
+  $(p + "V").textContent = text;
+  $(p + "B").style.transform = "scaleX(" + clamp(ratio, 0, 1).toFixed(3) + ")";
+  const t = $(p + "T");
+  t.classList.toggle("h1", level === 1);
+  t.classList.toggle("h2", level === 2);
+}
+const gb = kb => (kb / 1048576).toFixed(1) + " GB";
+
+async function monTick() {
+  if (monBusy || document.hidden || subOpen) return;
+  if (moving) { clearTimeout(monTimer); monTimer = setTimeout(monTick, 300); return; }
+  monBusy = true;
+  let r;
+  try { r = await exec("sh " + TWSCRIPT + " stat"); } finally { monBusy = false; }
+  const m = parseKV(r.out || "");
+  if (!m.MEMT) return;
+
+  const mt = +m.MEMT || 0, ma = +m.MEMA || 0, st = +m.SWAPT || 0, sf = +m.SWAPF || 0;
+  const used = mt - ma;
+  setTile("mRam", gb(used) + " / " + gb(mt), mt ? used / mt : 0, mt && used / mt > 0.9 ? 2 : mt && used / mt > 0.8 ? 1 : 0);
+  setTile("mSwap", st ? gb(st - sf) + " / " + gb(st) : "-", st ? (st - sf) / st : 0, st && (st - sf) / st > 0.85 ? 1 : 0);
+
+  let bt = m.BATT !== "" && m.BATT !== undefined ? +m.BATT / 10 : NaN;
+  if (!isNaN(bt)) setTile("mBat", bt.toFixed(1) + "°C", (bt - 25) / 25, bt >= 45 ? 2 : bt >= 40 ? 1 : 0);
+  else setTile("mBat", "-", 0, 0);
+
+  let ct = m.CPUT !== "" && m.CPUT !== undefined ? +m.CPUT : NaN;
+  if (!isNaN(ct) && ct > 1000) ct /= 1000;
+  if (!isNaN(ct)) setTile("mCpu", ct.toFixed(0) + "°C", (ct - 30) / 60, ct >= 85 ? 2 : ct >= 75 ? 1 : 0);
+  else setTile("mCpu", "-", 0, 0);
+
+  const sT = +m.STOT || 0, sU = +m.SUSE || 0;
+  if (sT) setTile("mSto", gb(sU) + " / " + gb(sT), sU / sT, sU / sT > 0.92 ? 2 : sU / sT > 0.85 ? 1 : 0);
+  else setTile("mSto", "-", 0, 0);
+
+  const ld = parseFloat(m.LOAD), cores = +m.CORES || 8;
+  if (!isNaN(ld)) setTile("mLd", ld.toFixed(2), ld / cores, ld / cores > 0.9 ? 2 : ld / cores > 0.7 ? 1 : 0);
+  else setTile("mLd", "-", 0, 0);
+
+  $("monW").textContent = (bt >= 42 || ct >= 80) ? T.monHot : "";
+
+  const list = [];
+  for (let i = 0; i < 12; i++) { const v = m["F" + i]; if (v === undefined) break; list.push(v); }
+  const box = $("mFreq");
+  if (fqBuilt !== list.length) {
+    box.innerHTML = "";
+    list.forEach(() => {
+      const d = document.createElement("div"); d.className = "fq";
+      d.innerHTML = '<span></span><b></b><div class="meter"><i></i></div>';
+      box.append(d);
+    });
+    fqBuilt = list.length;
+  }
+  [...box.children].forEach((d, i) => {
+    const p = (list[i] || "0/0").split("/").map(Number);
+    const cur = p[0] || 0, max = p[1] || 0;
+    d.children[0].textContent = T.monCl.replace("{n}", i);
+    d.children[1].textContent = (cur / 1e6).toFixed(2) + " / " + (max / 1e6).toFixed(2) + " GHz";
+    d.children[2].firstChild.style.transform = "scaleX(" + (max ? clamp(cur / max, 0, 1) : 0).toFixed(3) + ")";
+  });
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && twShown) monTick(); });
+$("monBox").onclick = () => monTick();
+
+/* ===== Aksi perawatan ===== */
+$("rKill").onclick = () => act($("rKill"), "sh " + TWSCRIPT + " killbg", T.killOk);
+$("rRam").onclick = () => act($("rRam"), "sh " + TWSCRIPT + " ramclean", T.ramOk);
+$("rTrimC").onclick = () => act($("rTrimC"), "sh " + TWSCRIPT + " trimcache", T.trimOk);
+$("rJunk").onclick = () => act($("rJunk"), "sh " + TWSCRIPT + " junk", T.junkOk);
+$("rFstrim").onclick = () => act($("rFstrim"), "sh " + TWSCRIPT + " fstrim", T.ftOk);
+
+/* Baris dengan konfirmasi ketuk dua kali */
+function armable(id, subId, restoreText, armText, fn) {
+  const row = $(id); let armed = false, t = 0;
+  row.onclick = () => {
+    if (!armed) {
+      armed = true; row.classList.add("armed"); $(subId).textContent = armText;
+      clearTimeout(t);
+      t = setTimeout(() => { armed = false; row.classList.remove("armed"); $(subId).textContent = restoreText; }, 3500);
+    } else {
+      clearTimeout(t); armed = false; row.classList.remove("armed"); $(subId).textContent = restoreText;
+      fn();
+    }
+  };
+}
+armable("rDex", "rDexS", T.dexS, T.dexArm, () => act($("rDex"), "sh " + TWSCRIPT + " dexopt", T.dexOk));
+
+$("rTwReset").onclick = async () => {
+  clearTimeout(twTimer);
+  const row = $("rTwReset");
+  row.classList.add("busy");
+  const r = await exec("sh " + TWSCRIPT + " reset");
+  row.classList.remove("busy");
+  tw = Object.assign({}, TW_DEF);
+  applyTwUI();
+  setTimeout(refreshInfo, 300);
+  toast(r.errno === 0 ? T.twResetOk : T.twErr);
+};
+
+/* =====================================================
+   Dialog peringatan (Promise)
+   ===================================================== */
+function askConfirm(title, text, okLabel, noLabel) {
+  return new Promise(res => {
+    $("cTitle").textContent = title; $("cText").textContent = text;
+    $("cOk").textContent = okLabel; $("cNo").textContent = noLabel;
+    const m = $("cmodal");
+    m.classList.add("show");
+    requestAnimationFrame(() => m.classList.add("in"));
+    const done = v => {
+      m.classList.remove("in");
+      setTimeout(() => m.classList.remove("show"), 260);
+      res(v);
+    };
+    $("cOk").onclick = () => done(true);
+    $("cNo").onclick = () => done(false);
+  });
+}
+
+/* =====================================================
+   Sub-halaman (Resolusi, Debloat): buka / tutup
+   ===================================================== */
+function openSub(el, onOpen) {
+  if (subOpen) return;
+  subOpen = true; subEl = el;
+  try { history.pushState({ sub: 1 }, ""); } catch (_) {}
+  el.style.display = "";
+  setTimeout(onOpen, 450);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.classList.add("open");
+    $("pgTw").classList.remove("unpush");
+    $("pgTw").classList.add("pushed");
+  }));
+}
+function closeSub(fromPop) {
+  if (!subOpen) return;
+  subOpen = false;
+  const el = subEl;
+  el.classList.remove("open");
+  const tw2 = $("pgTw");
+  tw2.classList.add("unpush"); tw2.classList.remove("pushed");
+  setTimeout(() => tw2.classList.remove("unpush"), 560);
+  setTimeout(() => { if (!subOpen) el.style.display = "none"; }, 520);
+  if (!fromPop) {
+    try { if (history.state && history.state.sub) history.back(); } catch (_) {}
+  }
+}
+window.addEventListener("popstate", () => { if (subOpen) closeSub(true); });
+
+/* =====================================================
+   Resolusi layar (sub-halaman, NezScript/resolusi.sh)
+   ===================================================== */
+const RES_PCT = [50, 60, 70, 80, 90, 100, 110, 125];
+const pgRes = $("pgRes");
+let resInfo = null, resSel = 100, resCur = 100;
+
+/* 0 = aman, 1 = hati-hati, 2 = berisiko */
+function riskOf(p) {
+  if (p >= 80 && p <= 100) return 0;
+  if ((p >= 70 && p < 80) || (p > 100 && p <= 110)) return 1;
+  return 2;
+}
+
+const fmtSz = s => (s || "-").replace("x", "×");
+function dimOf(sz) {
+  const a = (sz || "").split("x");
+  return [parseInt(a[0], 10), parseInt(a[1], 10)];
+}
+function calcRes(pct) {
+  const W = dimOf(resInfo.PSIZE)[0], H = dimOf(resInfo.PSIZE)[1];
+  const pd = parseInt(resInfo.PDEN, 10);
+  const ev = n => Math.floor(Math.floor((n * pct + 50) / 100) / 2) * 2;
+  return { w: ev(W), h: ev(H), den: Math.floor((pd * pct + 50) / 100) };
+}
+
+function buildChips() {
+  const box = $("resChips"); box.innerHTML = "";
+  RES_PCT.forEach(p => {
+    const b = document.createElement("button");
+    b.className = "chip2 r" + riskOf(p); b.dataset.p = p; b.textContent = p + "%";
+    b.onclick = () => { resSel = p; renderRes(); };
+    box.append(b);
+  });
+}
+
+function setResRow() {
+  let s = T.resNA;
+  if (resInfo && resInfo.CSIZE) {
+    s = fmtSz(resInfo.CSIZE) + (resCur === 100 ? " · " + T.devDef : " · " + resCur + "%");
+  }
+  $("rResRowS").textContent = s;
+}
+
+function renderRes() {
+  const box = $("resInfo"); box.innerHTML = "";
+  const add = (k, v) => {
+    const d = document.createElement("div");
+    const a = document.createElement("span"); a.textContent = k;
+    const b = document.createElement("b"); b.textContent = v;
+    d.append(a, b); box.append(d);
+  };
+  document.querySelectorAll("#resChips .chip2").forEach(b => {
+    const p = parseInt(b.dataset.p, 10);
+    b.classList.toggle("sel", p === resSel);
+    b.classList.toggle("cur", p === resCur);
+  });
+  const rk = riskOf(resSel);
+  const rb = $("riskB");
+  rb.className = "risk r" + rk; rb.textContent = T.riskL[rk];
+  $("riskN").textContent = T.riskN[rk];
+
+  if (!resInfo || !resInfo.PSIZE) {
+    add(T.resNow, T.resNA);
+    $("resPrev").textContent = "";
+    $("resApply").classList.add("off");
+    $("resApply").textContent = T.resApply;
+    return;
+  }
+  add(T.resPhys, fmtSz(resInfo.PSIZE) + " · " + resInfo.PDEN + " dpi");
+  add(T.resNow, fmtSz(resInfo.CSIZE) + " · " + resInfo.CDEN + " dpi (" + resCur + "%)");
+  const c = calcRes(resSel);
+  $("resPrev").textContent = T.resPrevT.replace("{s}", c.w + "×" + c.h).replace("{d}", c.den);
+  const same = resSel === resCur;
+  $("resApply").classList.toggle("off", same);
+  $("resApply").textContent = same ? T.resSame : T.resApply;
+}
+
+async function loadRes() {
+  const r = await exec("sh " + RESSCRIPT + " info");
+  const m = parseKV(r.out);
+  if (!m.PSIZE) { resInfo = null; setResRow(); renderRes(); return; }
+  resInfo = m;
+  const pw = dimOf(m.PSIZE)[0], cwid = dimOf(m.CSIZE)[0];
+  resCur = pw ? Math.round(cwid / pw * 100) : 100;
+  resSel = RES_PCT.includes(resCur) ? resCur : 100;
+  setResRow();
+  renderRes();
+}
+
+/* Dialog konfirmasi + hitung mundur */
+let mTimer = 0, mLeft = 15;
+function openModal(secs) {
+  secs = secs || 15;
+  mLeft = secs;
+  $("mNum").textContent = mLeft;
+  $("mText").textContent = T.mText.replace("{n}", mLeft);
+  const ring = $("mRing");
+  ring.style.animation = "none"; void ring.getBoundingClientRect();
+  ring.style.animation = "ringc " + secs + "s linear forwards";
+  const m = $("modal");
+  m.classList.add("show");
+  requestAnimationFrame(() => m.classList.add("in"));
+  clearInterval(mTimer);
+  mTimer = setInterval(() => {
+    mLeft--;
+    $("mNum").textContent = Math.max(mLeft, 0);
+    $("mText").textContent = T.mText.replace("{n}", Math.max(mLeft, 0));
+    if (mLeft <= 0) { clearInterval(mTimer); undoRes(); }
+  }, 1000);
+}
+function closeModal() {
+  clearInterval(mTimer);
+  const m = $("modal");
+  m.classList.remove("in");
+  setTimeout(() => m.classList.remove("show"), 260);
+}
+async function keepRes() {
+  closeModal();
+  await exec("sh " + RESSCRIPT + " confirm");
+  toast(T.resKept);
+  loadRes();
+}
+async function undoRes() {
+  closeModal();
+  await exec("sh " + RESSCRIPT + " revert");
+  toast(T.resUndone);
+  loadRes();
+}
+$("mKeep").onclick = keepRes;
+$("mUndo").onclick = undoRes;
+
+$("resApply").onclick = async () => {
+  if (!resInfo || resSel === resCur) return;
+  const rk = riskOf(resSel);
+  if (rk > 0) {
+    const c = calcRes(resSel);
+    const ok = await askConfirm(
+      T.cwTitle,
+      T.cwText.replace("{p}", resSel).replace("{s}", c.w + "×" + c.h) + T.riskN[rk],
+      T.cwGo, T.cwNo);
+    if (!ok) return;
+  }
+  const r = await exec("sh " + RESSCRIPT + " apply " + resSel);
+  if (r.errno !== 0 || /ERR/.test(r.out)) { toast(T.resErr); return; }
+  openModal(15);
+};
+
+$("rResReset").onclick = async () => {
+  const row = $("rResReset");
+  row.classList.add("busy");
+  const r = await exec("sh " + RESSCRIPT + " reset");
+  row.classList.remove("busy");
+  toast(r.errno === 0 ? T.resResetOk : T.resErr);
+  loadRes();
+};
+
+/* Bila WebUI dimuat ulang saat konfirmasi masih menunggu (mis. karena perubahan DPI) */
+async function resCheck() {
+  const r = await exec("sh " + RESSCRIPT + " info");
+  const m = parseKV(r.out);
+  const left = parseInt(m.LEFT, 10) || 0;
+  if (left > 0) openModal(clamp(left - 8, 3, 15));
+}
+
+$("rResRow").onclick = () => openSub(pgRes, loadRes);
+$("resBack").onclick = () => closeSub(false);
+
+/* =====================================================
+   Debloat (sub-halaman, NezScript/debloat.sh)
+   Level: 0 = Aman, 1 = Hati-hati, 2 = Ahli, 3 = Terkunci
+   ===================================================== */
+const DB_LIST = [
+  /* ---- Aman ---- */
+  ["com.facebook.appmanager",0,"Layanan pendukung Facebook","Facebook support service"],
+  ["com.facebook.services",0,"Layanan Facebook","Facebook services"],
+  ["com.facebook.system",0,"Komponen sistem Facebook","Facebook system stub"],
+  ["com.facebook.katana",0,"Aplikasi Facebook","Facebook app"],
+  ["com.facebook.lite",0,"Facebook Lite","Facebook Lite"],
+  ["com.instagram.android",0,"Aplikasi Instagram","Instagram app"],
+  ["com.zhiliaoapp.musically",0,"Aplikasi TikTok","TikTok app"],
+  ["com.ss.android.ugc.trill",0,"Aplikasi TikTok","TikTok app"],
+  ["com.netflix.mediaclient",0,"Aplikasi Netflix","Netflix app"],
+  ["com.netflix.partner.activation",0,"Aktivasi Netflix","Netflix activation"],
+  ["com.afmobi.boomplayer",0,"Boomplay (musik)","Boomplay (music)"],
+  ["com.google.android.videos",0,"Google TV","Google TV"],
+  ["com.google.android.apps.youtube.music",0,"YouTube Music","YouTube Music"],
+  ["com.google.android.music",0,"Google Play Musik","Google Play Music"],
+  ["com.google.android.apps.tachyon",0,"Google Meet / Duo","Google Meet / Duo"],
+  ["com.google.android.apps.magazines",0,"Google Berita","Google News"],
+  ["com.google.android.apps.podcasts",0,"Google Podcast","Google Podcasts"],
+  ["com.google.android.apps.docs",0,"Google Drive","Google Drive"],
+  ["com.google.android.apps.docs.editors.docs",0,"Google Dokumen","Google Docs"],
+  ["com.google.android.apps.docs.editors.sheets",0,"Google Spreadsheet","Google Sheets"],
+  ["com.google.android.apps.docs.editors.slides",0,"Google Slide","Google Slides"],
+  ["com.google.android.projection.gearhead",0,"Android Auto","Android Auto"],
+  ["com.google.android.printservice.recommendation",0,"Rekomendasi layanan cetak","Print service recommendations"],
+  ["com.google.android.feedback",0,"Agen umpan balik Google","Google feedback agent"],
+  ["com.google.android.apps.wellbeing",0,"Digital Wellbeing (batas waktu layar)","Digital Wellbeing (screen time)"],
+  ["com.google.android.apps.subscriptions.red",0,"Google One","Google One"],
+  ["com.google.android.apps.chromecast.app",0,"Google Home","Google Home"],
+  ["com.google.android.apps.fitness",0,"Google Fit","Google Fit"],
+  ["com.google.android.apps.searchlite",0,"Google Go","Google Go"],
+  ["com.android.egg",0,"Easter egg Android","Android Easter egg"],
+  ["com.android.traceur",0,"System Tracing (alat debug)","System Tracing (debug tool)"],
+  ["com.android.dreams.basic",0,"Screensaver dasar","Basic screensaver"],
+  ["com.android.dreams.phototable",0,"Screensaver foto","Photo screensaver"],
+  ["com.android.dynsystem",0,"Dynamic System Updates (alat developer)","Dynamic System Updates (developer tool)"],
+  ["com.transsion.carlcare",0,"Carlcare (layanan purna jual)","Carlcare (after-sales service)"],
+  ["com.transsion.palmstore",0,"Palm Store (toko aplikasi)","Palm Store (app store)"],
+  ["com.transsion.smartpanel",0,"Smart Panel (panel samping)","Smart Panel (side panel)"],
+  /* ---- Hati-hati ---- */
+  ["com.google.android.youtube",1,"YouTube (juga membuka tautan video)","YouTube (also opens video links)"],
+  ["com.google.android.apps.maps",1,"Google Maps","Google Maps"],
+  ["com.google.android.gm",1,"Gmail","Gmail"],
+  ["com.google.android.gm.lite",1,"Gmail Go","Gmail Go"],
+  ["com.google.android.apps.photos",1,"Google Foto (bisa jadi galeri utama)","Google Photos (may be your main gallery)"],
+  ["com.android.chrome",1,"Chrome (pastikan ada browser lain)","Chrome (make sure another browser exists)"],
+  ["com.google.android.calendar",1,"Google Kalender","Google Calendar"],
+  ["com.google.android.keep",1,"Google Keep (catatan)","Google Keep (notes)"],
+  ["com.google.ar.core",1,"ARCore (dipakai aplikasi AR)","ARCore (used by AR apps)"],
+  ["com.google.android.apps.googleassistant",1,"Asisten Google","Google Assistant"],
+  ["com.google.android.apps.walletnfcrel",1,"Google Wallet (pembayaran)","Google Wallet (payments)"],
+  ["com.google.android.apps.nbu.files",1,"Files by Google (pengelola file)","Files by Google (file manager)"],
+  ["com.android.calendar",1,"Kalender","Calendar"],
+  ["com.android.deskclock",1,"Jam & alarm (alarm bisa hilang)","Clock & alarms (alarms may stop)"],
+  ["com.android.calculator2",1,"Kalkulator","Calculator"],
+  ["com.android.gallery3d",1,"Galeri","Gallery"],
+  ["com.android.soundrecorder",1,"Perekam suara","Sound recorder"],
+  ["com.android.email",1,"Email","Email"],
+  ["com.android.printspooler",1,"Layanan cetak","Print spooler"],
+  ["com.android.bips",1,"Layanan cetak bawaan","Default print service"],
+  ["com.android.musicfx",1,"Equalizer","Equalizer"],
+  ["com.android.htmlviewer",1,"Pembuka file HTML","HTML viewer"],
+  ["com.android.bookmarkprovider",1,"Penyedia bookmark","Bookmark provider"],
+  ["com.android.apps.tag",1,"Pembaca tag NFC","NFC tag reader"],
+  ["com.android.simappdialog",1,"Dialog aplikasi SIM","SIM app dialog"],
+  ["com.transsion.phonemaster",1,"Phone Master (pembersih & optimasi)","Phone Master (cleaner & optimizer)"],
+  ["com.transsion.gamespace",1,"Game Mode","Game Mode"],
+  ["com.transsion.weather",1,"Cuaca","Weather"],
+  ["com.rlk.weathers",1,"Cuaca","Weather"],
+  ["com.transsion.notebook",1,"Catatan","Notes"],
+  ["com.transsion.soundrecorder",1,"Perekam suara","Sound recorder"],
+  ["com.transsion.filemanager",1,"Pengelola file","File manager"],
+  ["com.transsion.aivoiceassistant",1,"Ella (asisten suara)","Ella (voice assistant)"],
+  ["com.talpa.hibrowser",1,"HiBrowser","HiBrowser"],
+  ["com.transsion.healthlife",1,"Kesehatan","Health"],
+  ["com.transsion.magicshow",1,"Magic Show (editor video)","Magic Show (video editor)"],
+  /* ---- Ahli ---- */
+  ["com.google.android.tts",2,"Text-to-speech Google (dipakai aksesibilitas)","Google text-to-speech (used by accessibility)"],
+  ["com.google.android.googlequicksearchbox",2,"Aplikasi Google & Asisten","Google app & Assistant"],
+  ["com.google.android.partnersetup",2,"Penyiapan mitra Google","Google partner setup"],
+  ["com.google.android.apps.messaging",2,"Google Pesan (bisa jadi aplikasi SMS utama)","Google Messages (may be your default SMS app)"],
+  ["com.google.android.contacts",2,"Google Kontak","Google Contacts"],
+  ["com.google.android.inputmethod.latin",2,"Gboard (keyboard)","Gboard (keyboard)"],
+  ["com.google.android.syncadapters.contacts",2,"Sinkronisasi kontak Google","Google contacts sync"],
+  ["com.google.android.syncadapters.calendar",2,"Sinkronisasi kalender Google","Google calendar sync"],
+  ["com.google.android.onetimeinitializer",2,"Inisialisasi Google","Google one-time initializer"],
+  ["com.android.camera2",2,"Kamera (bisa jadi kamera utama)","Camera (may be your main camera)"],
+  ["com.android.camera",2,"Kamera","Camera"],
+  ["com.android.contacts",2,"Kontak","Contacts"],
+  ["com.android.messaging",2,"Pesan (SMS)","Messages (SMS)"],
+  ["com.android.statementservice",2,"Verifikasi tautan aplikasi","App link verification"],
+  ["com.android.proxyhandler",2,"Penangan proxy","Proxy handler"],
+  ["com.android.localtransport",2,"Transport cadangan lokal","Local backup transport"],
+  ["com.android.backupconfirm",2,"Konfirmasi cadangan","Backup confirmation"],
+  ["com.android.vpndialogs",2,"Dialog VPN","VPN dialogs"],
+  ["com.android.captiveportallogin",2,"Login portal Wi-Fi","Wi-Fi captive portal login"],
+  ["com.android.pacprocessor",2,"Pemroses proxy PAC","PAC proxy processor"],
+  ["com.transsion.theme",2,"Toko tema","Theme store"],
+  /* ---- Terkunci ---- */
+  ["com.android.dialer",3,"Aplikasi telepon","Phone app"],
+  ["com.google.android.dialer",3,"Google Telepon","Google Phone"],
+  ["com.google.android.configupdater",3,"Pembaruan konfigurasi sistem","System config updater"],
+  ["com.transsion.systemupdate",3,"Pembaruan sistem (OTA)","System update (OTA)"],
+  ["com.transsion.ota",3,"Pembaruan sistem (OTA)","System update (OTA)"],
+  ["com.google.android.cellbroadcastreceiver",3,"Peringatan darurat","Emergency alerts"]
+];
+const DB = new Map();
+DB_LIST.forEach(e => DB.set(e[0], e));
+
+const LOCK_PREFIX = [
+  "android.","com.android.systemui","com.android.settings","com.android.phone","com.android.server.telecom",
+  "com.android.providers.","com.android.bluetooth","com.android.nfc","com.android.shell","com.android.inputmethod",
+  "com.android.permissioncontroller","com.android.packageinstaller","com.android.vending","com.android.webview",
+  "com.android.networkstack","com.android.location","com.android.keychain","com.android.certinstaller",
+  "com.android.cellbroadcast","com.android.emergency","com.android.stk","com.android.mms.service",
+  "com.android.carrierconfig","com.android.managedprovisioning","com.android.documentsui",
+  "com.android.externalstorage","com.android.mtp","com.android.wallpaper","com.android.companiondevicemanager",
+  "com.android.internal.","com.google.android.gms","com.google.android.gsf","com.google.android.setupwizard",
+  "com.google.android.webview","com.google.android.permissioncontroller","com.google.android.packageinstaller",
+  "com.google.android.networkstack","com.google.android.ext.","com.google.android.captiveportallogin",
+  "me.weishu.kernelsu","com.topjohnwu.magisk","com.rifsxd.ksunext","com.sukisu","io.github.a13e300.ksuwebui",
+  "com.dergoogler.mmrl","com.mediatek.","com.qualcomm.","com.sprd.","com.unisoc."
+];
+const LOCK_HAS = ["launcher", "systemui", "telecom", "telephony", "keyguard", ".overlay", "auto_generated_rro"];
+
+function isLockedPkg(p) {
+  if (p === "android" || p === "com.android.se") return true;
+  if (LOCK_PREFIX.some(x => p.startsWith(x))) return true;
+  if (LOCK_HAS.some(x => p.includes(x))) return true;
+  if (/\.ims(\.|$)/.test(p)) return true;
+  if (p === homePkg || p === imePkg) return true;
+  const e = DB.get(p);
+  return !!(e && e[1] === 3);
+}
+
+function dbLevel(p) {
+  const e = DB.get(p);
+  const d = e ? (ID ? e[2] : e[3]) : "";
+  if (isLockedPkg(p)) return { lv: 3, d: d || T.dbRuleL };
+  if (e) return { lv: e[1], d };
+  if (p.startsWith("com.google.android.apps.")) return { lv: 1, d: T.dbRuleG };
+  if (/^com\.(transsion|talpa|rlk|afmobi|palmplay)\./.test(p)) return { lv: 2, d: T.dbRuleT };
+  return { lv: 2, d: T.dbRuleU };
+}
+
+const pgDeb = $("pgDeb");
+let dbInst = [], dbRem = [], dbSel = new Set(), dbVis = [];
+let dbF = 0, dbQuery = "", dbTok = 0, dbBusy = false;
+
+function buildDbChips() {
+  const box = $("dbF"); box.innerHTML = "";
+  T.dbF.forEach((label, i) => {
+    const b = document.createElement("button");
+    b.className = "fch f" + i; b.textContent = label;
+    b.onclick = () => {
+      if (dbBusy) return;
+      dbF = i; dbSel.clear(); markDbChips(); dbRender();
+    };
+    box.append(b);
+  });
+  markDbChips();
+}
+function markDbChips() {
+  [...$("dbF").children].forEach((b, i) => b.classList.toggle("sel", i === dbF));
+}
+
+function dbUpdateBtn() {
+  const n = dbSel.size;
+  const b = $("dbGo");
+  b.classList.toggle("off", n === 0 || dbBusy);
+  if (!dbBusy) b.textContent = n === 0 ? T.dbGoNone : (dbF === 5 ? T.dbRestore : T.dbGo).replace("{n}", n);
+  const all = dbVis.length > 0 && dbVis.every(p => dbSel.has(p));
+  const sa = $("dbSelAll");
+  sa.textContent = all ? T.unsel : T.selAll;
+  sa.style.display = dbVis.length ? "" : "none";
+}
+
+function makeDbRow(a) {
+  const removedMode = dbF === 5;
+  const lock = a.lv === 3 && !removedMode;
+  const row = document.createElement("label");
+  row.className = "item" + (lock ? " prot" : "");
+  row.dataset.pkg = a.pkg;
+
+  const ico = document.createElement("div"); ico.className = "ico";
+  const img = new Image();
+  img.alt = ""; img.decoding = "async"; img.loading = "lazy";
+  img.onerror = () => iconFail(ico, img, a);
+  img.src = "ksu://icon/" + a.pkg;
+  ico.append(img);
+
+  const meta = document.createElement("div"); meta.className = "meta";
+  const nm = document.createElement("div"); nm.className = "nm";
+  const nb = document.createElement("b"); nb.textContent = a.label;
+  const lv = document.createElement("i"); lv.className = "lv l" + a.lv; lv.textContent = T.dbL[a.lv];
+  nm.append(nb, lv);
+  const pk = document.createElement("div"); pk.className = "pk"; pk.textContent = a.pkg;
+  const ds = document.createElement("div"); ds.className = "ds"; ds.textContent = a.d;
+  meta.append(nm, pk, ds);
+  row.append(ico, meta);
+
+  if (lock) {
+    row.insertAdjacentHTML("beforeend", SVG_LOCK);
+    row.addEventListener("click", () => toast(T.dbDenied));
+  } else {
+    const c = document.createElement("input");
+    c.type = "checkbox"; c.className = "ck"; c.checked = dbSel.has(a.pkg);
+    c.onchange = () => {
+      c.checked ? dbSel.add(a.pkg) : dbSel.delete(a.pkg);
+      dbUpdateBtn();
+      popCk(c);
+    };
+    row.append(c);
+  }
+  return row;
+}
+
+function dbRender() {
+  const tok = ++dbTok;
+  const removedMode = dbF === 5;
+  const q = dbQuery.toLowerCase();
+
+  const counts = [0, 0, 0, 0];
+  dbInst.forEach(p => counts[dbLevel(p).lv]++);
+  $("dbCnt").textContent =
+    T.dbCnt.replace("{n}", dbInst.length).replace("{m}", dbRem.length) + " · " +
+    T.dbL.map((l, i) => l + " " + counts[i]).join(" · ");
+
+  let items = (removedMode ? dbRem : dbInst).map(p => {
+    const x = dbLevel(p);
+    return { pkg: p, label: labelOf(p), lv: x.lv, d: x.d };
+  });
+  if (!removedMode && dbF >= 1 && dbF <= 4) items = items.filter(a => a.lv === dbF - 1);
+  if (q) items = items.filter(a => a.label.toLowerCase().includes(q) || a.pkg.toLowerCase().includes(q));
+  items.sort((a, b) => (a.lv - b.lv) || a.label.localeCompare(b.label));
+
+  dbVis = items.filter(a => removedMode || a.lv !== 3).map(a => a.pkg);
+  const box = $("dbList"); box.innerHTML = "";
+  dbUpdateBtn();
+  if (!items.length) { box.innerHTML = '<div class="empty">' + T.dbNone + "</div>"; return; }
+
+  let i = 0;
+  const addChunk = n => {
+    const frag = document.createDocumentFragment();
+    const end = Math.min(items.length, i + n);
+    for (; i < end; i++) frag.append(makeDbRow(items[i]));
+    box.append(frag);
+  };
+  addChunk(20);
+
+  (function next() {
+    if (tok !== dbTok || i >= items.length) return;
+    if (document.body.classList.contains("moving")) { setTimeout(next, 120); return; }
+    requestAnimationFrame(() => {
+      if (tok !== dbTok) return;
+      addChunk(20);
+      setTimeout(next, 30);
+    });
+  })();
+}
+
+const PKG_RE = /^[A-Za-z0-9._]+$/;
+async function loadDebloat() {
+  $("dbCnt").textContent = T.dbLoading;
+  const r1 = await exec("sh " + DEBSCRIPT + " list");
+  dbInst = (r1.out || "").split("\n").map(s => s.trim()).filter(x => PKG_RE.test(x));
+  if (r1.errno !== 0 || !dbInst.length) { $("dbCnt").textContent = T.dbFail; return; }
+  const r2 = await exec("sh " + DEBSCRIPT + " removed");
+  dbRem = (r2.out || "").split("\n").map(s => s.trim()).filter(x => PKG_RE.test(x));
+  await fetchLabels(dbInst.concat(dbRem));
+  dbRender();
+}
+
+async function dbRun() {
+  if (dbBusy || !dbSel.size) return;
+  const mode = dbF === 5 ? "restore" : "remove";
+  const pk = [...dbSel].filter(p => PKG_RE.test(p));
+  if (!pk.length) return;
+
+  let ok;
+  if (mode === "remove") {
+    const c = [0, 0, 0, 0];
+    pk.forEach(p => c[dbLevel(p).lv]++);
+    const risky = c[1] + c[2] > 0;
+    ok = await askConfirm(
+      T.dbConfirmT.replace("{n}", pk.length),
+      T.dbConfirmX.replace("{a}", c[0]).replace("{b}", c[1]).replace("{c}", c[2]) + (risky ? T.dbConfirmW : T.dbConfirmS),
+      T.dbConfirmGo, T.cwNo);
+  } else {
+    ok = await askConfirm(T.dbRestoreT.replace("{n}", pk.length), T.dbRestoreX, T.dbRestoreGo, T.cwNo);
+  }
+  if (!ok) return;
+
+  dbBusy = true; dbUpdateBtn();
+  let good = 0, bad = 0;
+  for (let i = 0; i < pk.length; i += 3) {
+    const part = pk.slice(i, i + 3);
+    $("dbGo").textContent = T.dbProg.replace("{a}", Math.min(i + 3, pk.length)).replace("{b}", pk.length);
+    const r = await exec("sh " + DEBSCRIPT + " " + mode + " " + part.join(" "));
+    (r.out || "").split("\n").forEach(l => {
+      const w = l.trim().split(" ");
+      if (w[0] === "OK") good++;
+      else if (w[0] === "FAIL" || w[0] === "DENY" || w[0] === "BAD") bad++;
+    });
+    await new Promise(res => setTimeout(res, 40));
+  }
+  dbBusy = false;
+  dbSel.clear();
+  toast(T.dbDone.replace("{ok}", good).replace("{fail}", bad));
+  await loadDebloat();
+}
+
+$("dbGo").onclick = dbRun;
+$("dbQ").oninput = e => { dbQuery = e.target.value; dbRender(); };
+$("dbSelAll").onclick = () => {
+  if (!dbVis.length || dbBusy) return;
+  const all = dbVis.every(p => dbSel.has(p));
+  dbVis.forEach(p => all ? dbSel.delete(p) : dbSel.add(p));
+  let k = 0;
+  document.querySelectorAll("#dbList .item:not(.prot)").forEach(row => {
+    const c = row.querySelector("input.ck");
+    if (!c) return;
+    const want = dbSel.has(row.dataset.pkg);
+    if (c.checked !== want) {
+      c.checked = want;
+      if (k < 18) {
+        c.style.animationDelay = k * 14 + "ms";
+        c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop");
+      }
+      k++;
+    }
+  });
+  dbUpdateBtn();
+};
+$("rDbBackup").onclick = () => act($("rDbBackup"), "sh " + DEBSCRIPT + " backup", T.dbBackupOk);
+$("dbBack").onclick = () => closeSub(false);
+
+/* =====================================================
+   Navigasi bawah (3 menu) + transisi halaman ringan
+   - tiap halaman = satu lapisan GPU (transform + opacity)
+   - posisi nav: 0 = Beranda, 1 = Tweaks, 2 = Setelan
+   ===================================================== */
+const nav = $("nav"), nlens = nav.querySelector(".lens");
+const pgHome = $("pgHome"), pgTw = $("pgTw"), pgSet = $("pgSet"), savewrap = $("savewrap");
+const PGS = [pgHome, pgTw, pgDeb, pgSet];
+const disp = [true, false, false, false];
+const synced = [true, false, false, false];
+let moving = false, twShown = false;
+
+/* Pemuatan data halaman ditunda sampai animasi perpindahan selesai */
+const FIRST = [
+  null,
+  () => setTimeout(loadTweaks, 450),
+  () => setTimeout(loadDebloat, 450),
+  () => { themeSlider.set(theme === "light"); setTimeout(loadAbout, 450); }
+];
+
+/* a = jarak halaman dari posisi tampil (0..1), dir = arah (-1 kiri, +1 kanan) */
+function pageStyle(el, a, dir) {
+  const s = el.style;
+  if (a <= 0.001) { s.opacity = ""; s.transform = ""; s.pointerEvents = ""; return; }
+  s.opacity = (1 - ss(0, 0.62, a)).toFixed(3);
+  s.transform = "translate3d(" + (dir * a * 28).toFixed(1) + "px,0,0) scale(" + (1 + dir * 0.05 * a).toFixed(4) + ")";
+  s.pointerEvents = a > 0.5 ? "none" : "";
+}
+
+function applyPages(p) {
+  let minD = 9;
+  for (let i = 0; i < 4; i++) {
+    const d = Math.abs(p - i);
+    if (d < minD) minD = d;
+    const el = PGS[i];
+    if (d >= 0.998) {
+      if (disp[i]) { el.style.display = "none"; disp[i] = false; pageStyle(el, 0, 0); }
+    } else {
+      if (!disp[i]) {
+        el.style.display = ""; disp[i] = true;
+        if (!synced[i]) { synced[i] = true; FIRST[i] && FIRST[i](); }
+      }
+      pageStyle(el, d, p < i ? 1 : -1);
+    }
+  }
+  const m = minD > 0.002;
+  if (m !== moving) { moving = m; document.body.classList.toggle("moving", m); }
+
+  /* Monitor dimuat saat halaman Tweaks tampil */
+  if (disp[1] !== twShown) { twShown = disp[1]; twShown ? monStart() : monStop(); }
+
+  const q = Math.min(p, 1);
+  savewrap.style.opacity = (1 - ss(0, 0.5, q)).toFixed(3);
+  savewrap.style.transform = "translate3d(0," + (ss(0, 0.8, q) * 22).toFixed(1) + "px,0)";
+  savewrap.style.pointerEvents = q > 0.5 ? "none" : "";
+}
+
+const navItems = [
+  { b: $("nHome"), i: $("nHome").querySelector("svg"), f: c => "scale(" + (1 + 0.16 * c).toFixed(3) + ")" },
+  { b: $("nTw"),   i: $("nTw").querySelector("svg"),   f: c => "scale(" + (1 + 0.16 * c).toFixed(3) + ")" },
+    { b: $("nDb"),   i: $("nDb").querySelector("svg"),   f: c => "scale(" + (1 + 0.16 * c).toFixed(3) + ")" },
+  { b: $("nSet"),  i: $("nSet").querySelector("svg"),  f: c => "scale(" + (1 + 0.16 * c).toFixed(3) + ") rotate(" + (c * 60).toFixed(1) + "deg)" }
+];
+
+const navSlider = makeSlider(nav, {
+  n: 4, k: 210, c: 24,
+  travel: () => cw(nlens),
+  tap: segTap(nav, 4),
+  render: (pos, vel, pr) => {
+    const w = cw(nlens);
+    const x = clamp(pos, -0.12, 3.12);
+    const st = Math.min(0.3, Math.abs(vel) * 0.05);
+    nlens.style.transform =
+      "translate3d(" + (x * w) + "px,0,0) scale(" + (1 + 0.06 * pr + st * 0.6) + "," + (1 + 0.1 * pr - st * 0.3) + ")";
+        for (let i = 0; i < 4; i++) {
+      const c = clamp(1 - Math.abs(pos - i), 0, 1);
+      navItems[i].b.style.opacity = (0.55 + 0.45 * c).toFixed(3);
+      navItems[i].i.style.transform = navItems[i].f(c);
+    }
+    applyPages(clamp(pos, 0, 3));
+  },
+  onChange: () => {}
+});
+/* Menyentuh navigasi menutup sub-halaman */
+nav.addEventListener("pointerdown", () => { if (subOpen) closeSub(false); });
+
+/* =====================================================
+   Daftar aplikasi: ikon, nama, rekomendasi, pilih semua
+   ===================================================== */
+const SVG_SHIELD = '<svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>';
+const SVG_LOCK = '<svg class="lk" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+
+const labelCache = new Map();
+async function fetchLabels(pk) {
+  const need = pk.filter(p => !labelCache.has(p));
+  if (!need.length) return;
+  try {
+    if (typeof ksu === "undefined" || typeof ksu.getPackagesInfo !== "function") return;
+  } catch (_) { return; }
+  for (let i = 0; i < need.length; i += 60) {
+    const part = need.slice(i, i + 60);
+    try {
+      const info = JSON.parse(ksu.getPackagesInfo(JSON.stringify(part)));
+      info.forEach(x => { if (x && x.packageName) labelCache.set(x.packageName, x.appLabel || ""); });
+    } catch (_) { break; }
+    await new Promise(r => setTimeout(r, 0));
+  }
+}
+function labelOf(p) {
+  const l = labelCache.get(p);
+  if (l) return l;
+  const s = p.split(".").pop() || p;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+async function getPkgs() {
+  try {
+    if (typeof ksu.listPackages === "function") {
+      const a = JSON.parse(ksu.listPackages(showAll ? "all" : "user"));
+      if (Array.isArray(a) && a.length) return a;
+    }
+  } catch (_) {}
+  const r = await exec("pm list packages " + (showAll ? "" : "-3") + " | sed 's/package://' | sort");
+  if (r.errno !== 0) toast(T.err + ": " + String(r.err || "").slice(0, 70));
+  return r.out.split("\n").map(s => s.trim()).filter(Boolean);
+}
+
+function filtered() {
+  const q = query.toLowerCase();
+  const map = new Map(apps.map(a => [a.pkg, a]));
+  sel.forEach(p => { if (!map.has(p)) map.set(p, { pkg: p, label: labelOf(p) }); });
+  return [...map.values()]
+    .filter(a => !q || a.label.toLowerCase().includes(q) || a.pkg.toLowerCase().includes(q))
+    .sort((a, b) =>
+      (sel.has(b.pkg) - sel.has(a.pkg)) ||
+      ((!isProt(b.pkg) && isRec(b.pkg)) - (!isProt(a.pkg) && isRec(a.pkg))) ||
+      a.label.localeCompare(b.label));
+}
+
+function avatar(ico, img, a) {
+  img.remove();
+  if (ico.querySelector(".av")) return;
+  const d = document.createElement("div"); d.className = "av";
+  let h = 0; for (const c of a.pkg) h = (h * 31 + c.charCodeAt(0)) % 360;
+  d.style.background = "linear-gradient(135deg,hsl(" + h + " 70% 55%),hsl(" + ((h + 40) % 360) + " 70% 42%))";
+  d.textContent = (a.label.trim().charAt(0) || "?").toUpperCase();
+  ico.prepend(d);
+}
+function iconFail(ico, img, a) {
+  img.onerror = () => avatar(ico, img, a);
+  try {
+    if (typeof ksu !== "undefined" && typeof ksu.getPackagesIcons === "function") {
+      const r = JSON.parse(ksu.getPackagesIcons(JSON.stringify([a.pkg]), 96));
+      const u = r && r[0] && (r[0].icon || r[0].data);
+      if (u) { img.src = u; return; }
+    }
+  } catch (_) {}
+  avatar(ico, img, a);
+}
+
+function popCk(c) {
+  c.style.animationDelay = "";
+  c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop");
+}
+
+function makeRow(a, i, anim) {
+  const prot = isProt(a.pkg), rec = !prot && isRec(a.pkg);
+  const row = document.createElement("label");
+  row.className = "item" + (prot ? " prot" : "") + (anim ? " enter" : "");
+  row.dataset.pkg = a.pkg;
+  if (anim) row.style.animationDelay = Math.min(i, 14) * 28 + "ms";
+
+  const ico = document.createElement("div"); ico.className = "ico";
+  const img = new Image();
+  img.alt = ""; img.decoding = "async"; img.loading = "lazy";
+  img.onerror = () => iconFail(ico, img, a);
+  img.src = "ksu://icon/" + a.pkg;
+  ico.append(img);
+  if (rec) {
+    const b = document.createElement("i"); b.className = "rb"; b.innerHTML = SVG_SHIELD;
+    ico.append(b);
+  }
+
+  const meta = document.createElement("div"); meta.className = "meta";
+  const nm = document.createElement("div"); nm.className = "nm";
+  const nb = document.createElement("b"); nb.textContent = a.label;
+  nm.append(nb);
+  if (rec) {
+    const rc = document.createElement("i"); rc.className = "rc";
+    rc.innerHTML = SVG_SHIELD + T.rec;
+    nm.append(rc);
+  }
+  const pk = document.createElement("div"); pk.className = "pk"; pk.textContent = a.pkg;
+  meta.append(nm, pk);
+  row.append(ico, meta);
+
+  if (prot) {
+    row.insertAdjacentHTML("beforeend", SVG_LOCK);
+    row.addEventListener("click", () => toast(T.protMsg));
+  } else {
+    const c = document.createElement("input");
+    c.type = "checkbox"; c.className = "ck"; c.checked = sel.has(a.pkg);
+    c.onchange = () => {
+      c.checked ? sel.add(a.pkg) : sel.delete(a.pkg);
+      updateSel(true);
+      popCk(c);
+    };
+    row.append(c);
+  }
+  return row;
+}
+
+function updateSel(withBump) {
+  $("info").textContent = T.sel + ": " + sel.size;
+  const all = shown.length > 0 && shown.every(p => sel.has(p));
+  $("selAll").textContent = all ? T.unsel : T.selAll;
+  if (withBump) bump();
+}
+
+/* Render bertahap: 24 baris pertama langsung, sisanya saat browser senggang */
+let renderTok = 0;
+function render(anim) {
+  const tok = ++renderTok;
+  const list = filtered();
+  shown = list.filter(a => !isProt(a.pkg)).map(a => a.pkg);
+  const box = $("list"); box.innerHTML = "";
+  updateSel(false);
+  if (!list.length) { box.innerHTML = '<div class="empty">' + T.empty + "</div>"; return; }
+
+  let i = 0;
+  const addChunk = n => {
+    const frag = document.createDocumentFragment();
+    const end = Math.min(list.length, i + n);
+    for (; i < end; i++) frag.append(makeRow(list[i], i, anim && i < 14));
+    box.append(frag);
+  };
+  addChunk(24);
+
+  (function next() {
+    if (tok !== renderTok || i >= list.length) return;
+    if (document.body.classList.contains("moving")) { setTimeout(next, 120); return; }
+    requestAnimationFrame(() => {
+      if (tok !== renderTok) return;
+      addChunk(24);
+      setTimeout(next, 30);
+    });
+  })();
+}
+
+async function loadApps(anim) {
+  const pk = await getPkgs();
+  await fetchLabels(pk.concat([...sel]));
+  apps = pk.map(p => ({ pkg: p, label: labelOf(p) }));
+  render(anim);
+}
+
+async function swapList() {
+  const l = $("list");
+  l.classList.add("out");
+  await loadApps(true);
+  requestAnimationFrame(() => l.classList.remove("out"));
+}
+
+async function loadSaved() {
+  const r = await exec("cat " + LIST + " 2>/dev/null");
+  r.out.split("\n").map(s => s.trim()).filter(Boolean).forEach(x => sel.add(x));
+}
+
+/* Perbarui ceklis di tempat (posisi daftar tidak melompat) */
+function syncChecks() {
+  let k = 0;
+  document.querySelectorAll("#list .item:not(.prot)").forEach(row => {
+    const c = row.querySelector("input.ck");
+    if (!c) return;
+    const want = sel.has(row.dataset.pkg);
+    if (c.checked !== want) {
+      c.checked = want;
+      if (k < 18) {
+        c.style.animationDelay = k * 14 + "ms";
+        c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop");
+      }
+      k++;
+    }
+  });
+}
+
+$("selAll").onclick = () => {
+  if (!shown.length) return;
+  const all = shown.every(p => sel.has(p));
+  shown.forEach(p => all ? sel.delete(p) : sel.add(p));
+  syncChecks();
+  updateSel(true);
+  toast(all ? T.unselDone : T.selDone.replace("{n}", shown.length));
+};
+
+/* ===== Tombol simpan ===== */
+const saveBtn = $("save");
+saveBtn.addEventListener("pointerdown", e => {
+  const r = saveBtn.getBoundingClientRect();
+  const d = document.createElement("span"); d.className = "rip";
+  d.style.left = (e.clientX - r.left) + "px";
+  d.style.top = (e.clientY - r.top) + "px";
+  saveBtn.append(d);
+  setTimeout(() => d.remove(), 800);
+});
+
+async function save() {
+  const pk = [...sel].filter(x => /^[A-Za-z0-9._]+$/.test(x) && !isProt(x));
+  const w = pk.length
+    ? "printf '%s\\n' " + pk.map(x => "'" + x + "'").join(" ") + " > " + LIST
+    : ": > " + LIST;
+  const r = await exec("mkdir -p " + DIR + "; " + w + "; sh " + SCRIPT);
+  if (r.errno === 0) {
+    saveBtn.classList.remove("jelly"); void saveBtn.offsetWidth; saveBtn.classList.add("jelly");
+  }
+  toast(r.errno === 0 ? T.saved : T.err);
+}
+
+/* ===== Setelan: aksi ===== */
+async function act(row, cmd, ok) {
+  row.classList.add("busy");
+  const r = await exec(cmd);
+  row.classList.remove("busy");
+  toast(r.errno === 0 ? ok : T.err);
+}
+
+$("rCache").onclick = () => act($("rCache"),
+  "L=$(cmd package resolve-activity --brief -c android.intent.category.HOME -a android.intent.action.MAIN 2>/dev/null | tail -n 1 | cut -d/ -f1); " +
+  "for p in $L com.android.systemui; do rm -rf /data/data/$p/cache/* /data/data/$p/code_cache/*; done",
+  T.okCache);
+
+$("rOvl").onclick = () => act($("rOvl"),
+  "PAT='hotseat|dynamicbar'; [ -f " + FLAG + " ] && PAT='hotseat'; " +
+  "for p in $(cmd overlay list --user 0 | grep -i -E \"^\\[ \\] .*($PAT)\" | sed 's/^\\[ \\] *//'); do " +
+  "cmd overlay enable --user 0 $p; done",
+  T.okOvl);
+
+let logOpen = false;
+$("rLog").onclick = async () => {
+  logOpen = !logOpen;
+  $("rLog").classList.toggle("open", logOpen);
+  $("logbox").classList.toggle("open", logOpen);
+  if (logOpen) {
+    const r = await exec("tail -n 60 " + MODDIR + "/service.log 2>/dev/null");
+    $("logpre").textContent = r.out.trim() || T.noLog;
+  }
+};
+
+armable("rBoot", "rBootS", T.rBootS, T.bootConfirm, () => exec("svc power reboot || reboot"));
+
+async function loadAbout() {
+  const r = await exec("grep -E '^(name|version|author)=' " + MODDIR + "/module.prop 2>/dev/null");
+  const m = parseKV(r.out);
+  const rows = [[T.name, m.name], [T.ver, m.version], [T.author, m.author]].filter(x => x[1]);
+  const box = $("about"); box.innerHTML = "";
+  rows.forEach(([k, v]) => {
+    const d = document.createElement("div");
+    const a = document.createElement("span"); a.textContent = k;
+    const b = document.createElement("b"); b.textContent = v;
+    d.append(a, b); box.append(d);
+  });
+}
+
+/* ===== Init ===== */
+$("q").placeholder = T.search;
+$("tUser").textContent = T.user;
+$("tAll").textContent = T.all;
+$("lbl").textContent = T.save;
+$("dynT").textContent = T.dynT;
+$("dynS").textContent = T.dynS;
+$("info").textContent = T.sel + ": 0";
+$("selAll").textContent = T.selAll;
+$("rhintT").textContent = T.recHint;
+$("nHomeT").textContent = T.navHome;
+$("nTwT").textContent = T.navTw;
+$("nSetT").textContent = T.navSet;
+$("nDbT").textContent = T.navDb;
+
+$("twTitle").textContent = T.twTitle; $("twSub").textContent = T.twSub;
+$("twWT").textContent = T.twWT; $("twWP").textContent = T.twWP;
+$("devT").textContent = T.devT;
+$("monT").textContent = T.monT;
+$("mRamL").textContent = T.monRam; $("mSwapL").textContent = T.monSwap;
+$("mBatL").textContent = T.monBat; $("mCpuL").textContent = T.monCpu;
+$("mStoL").textContent = T.monSto; $("mLdL").textContent = T.monLd;
+$("rendT").textContent = T.rendT;
+$("rd0").textContent = T.rDef; $("rd1").textContent = T.rGl; $("rd2").textContent = T.rVk;
+$("rNote").textContent = T.rNote;
+$("animT").textContent = T.animT;
+$("an0").textContent = T.a1; $("an1").textContent = T.a05; $("an2").textContent = T.a03; $("an3").textContent = T.a0;
+$("aHint").textContent = T.aH;
+$("hzT").textContent = T.hzT; $("hzH").textContent = T.hzH;
+$("perfT").textContent = T.perfT;
+$("pf0").textContent = T.pStd; $("pf1").textContent = T.pResp; $("pf2").textContent = T.pPerf;
+$("blurT").textContent = T.blurT; $("blurS").textContent = T.blurS;
+$("memT").textContent = T.memT; $("memS").textContent = T.memS;
+$("scanT").textContent = T.scanT; $("scanS").textContent = T.scanS;
+$("mainT").textContent = T.mainT;
+$("acT").textContent = T.acT; $("acS").textContent = T.acS;
+$("rKillN").textContent = T.killT; $("rKillS").textContent = T.killS;
+$("rRamN").textContent = T.ramT; $("rRamS").textContent = T.ramS;
+$("rTrimCN").textContent = T.trimT; $("rTrimCS").textContent = T.trimS;
+$("rJunkN").textContent = T.junkT; $("rJunkS").textContent = T.junkS;
+$("rFstrimN").textContent = T.ftT; $("rFstrimS").textContent = T.ftS;
+$("rDexN").textContent = T.dexT; $("rDexS").textContent = T.dexS;
+$("rTwResetN").textContent = T.twResetT; $("rTwResetS").textContent = T.twResetS;
+$("advT").textContent = T.advT;
+$("rResRowN").textContent = T.resRow; $("rResRowS").textContent = T.resNA;
+
+$("resBackT").textContent = T.back;
+$("resTitle").textContent = T.resTitle; $("resSub").textContent = T.resSub;
+$("resWT").textContent = T.resWT;
+$("resWL").innerHTML = "";
+T.resW.forEach(t => { const li = document.createElement("li"); li.textContent = t; $("resWL").append(li); });
+$("resCurT").textContent = T.resCurT;
+$("resPickT").textContent = T.resPickT;
+$("resApply").textContent = T.resApply;
+$("rResResetN").textContent = T.resReset; $("rResResetS").textContent = T.resResetS;
+$("mTitle").textContent = T.mTitle;
+$("mKeep").textContent = T.mKeep; $("mUndo").textContent = T.mUndo;
+
+$("dbBackT").textContent = T.back;
+$("dbTitle").textContent = T.dbTitle; $("dbSub").textContent = T.dbSub;
+$("dbWT").textContent = T.dbWT;
+$("dbWL").innerHTML = "";
+T.dbW.forEach(t => { const li = document.createElement("li"); li.textContent = t; $("dbWL").append(li); });
+$("dbLgT").textContent = T.dbLgT;
+$("dbLegend").innerHTML = "";
+T.dbLD.forEach((t, i) => {
+  const d = document.createElement("div"); d.className = "lgd";
+  const b = document.createElement("i"); b.className = "lv l" + i; b.textContent = T.dbL[i];
+  const s = document.createElement("span"); s.textContent = t;
+  d.append(b, s); $("dbLegend").append(d);
+});
+$("dbQ").placeholder = T.dbSearch;
+$("dbGo").textContent = T.dbGoNone;
+$("dbSelAll").textContent = T.selAll;
+$("dbSelAll").style.display = "none";
+$("rDbBackupN").textContent = T.dbBackup; $("rDbBackupS").textContent = T.dbBackupS;
+
+$("setTitle").textContent = T.setTitle;
+$("setSub").textContent = T.setSub;
+$("rCacheN").textContent = T.rCache; $("rCacheS").textContent = T.rCacheS;
+$("rOvlN").textContent = T.rOvl;     $("rOvlS").textContent = T.rOvlS;
+$("rLogN").textContent = T.rLog;     $("rLogS").textContent = T.rLogS;
+$("rBootN").textContent = T.rBoot;   $("rBootS").textContent = T.rBootS;
+$("apT").textContent = T.ap;
+$("thT").textContent = T.th; $("thD").textContent = T.thD; $("thL").textContent = T.thL;
+$("bgT").textContent = T.bgT; $("dimT").textContent = T.dimT;
+$("pathT").textContent = T.pathT; $("pathBtn").textContent = T.load; $("pathH").textContent = T.pathH;
+$("rResetN").textContent = T.reset; $("rResetS").textContent = T.resetS;
+$("aboutT").textContent = T.about;
+$("path").value = store.get("nez_path", "");
+
+$("q").oninput = e => { query = e.target.value; render(false); };
+saveBtn.onclick = save;
+
+applyTheme(theme, false);
+buildSwatches();
+buildChips();
+buildDbChips();
+applyBg();
+
+swSlider.set(false);
+tabSlider.set(false);
+navSlider.set(0);
+applyTwUI();
+
+/* Pemuatan data ditunda sedikit agar halaman langsung responsif saat dibuka */
+setTimeout(async () => {
+  await loadGuards();
+  await loadSaved();
+  await loadApps(true);
+  setTimeout(loadDyn, 100);
+  setTimeout(resCheck, 600);
+}, 250);
+</script>
+</body>
+</html>
